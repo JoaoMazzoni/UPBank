@@ -12,7 +12,7 @@ namespace Models
     {
         public Agency Agency { get; set; }
         public string Number { get; set; }
-        public List<Client> Costumers { get; set; }
+        public List<Customer> Customers { get; set; }
         public bool Restriction { get; set; }   
         public CreditCard CreditCard { get; set; }
         public double SpecialLimit { get; set; }

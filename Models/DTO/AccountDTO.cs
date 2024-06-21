@@ -8,7 +8,7 @@ namespace Models.DTO
         [Key]
         public string AgencyNumber { get; set; }
         public string Number { get; set; }
-        public List<string> Costumers { get; set; }   
+        public List<string> Customers { get; set; }   
         public bool Restriction { get; set; }
         public CreditCard CreditCard { get; set; }
         public double SpecialLimit { get; set; }
