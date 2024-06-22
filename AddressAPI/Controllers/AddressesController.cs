@@ -26,7 +26,7 @@ namespace AddressAPI.Controllers
             return Ok(_addressService.GetAll());
         }
 
-
+        //Arrumar aqui para buscar por Id
         [HttpGet("{id}")]
         public IActionResult Get(string id)
         {
@@ -41,9 +41,9 @@ namespace AddressAPI.Controllers
             return Ok(address);
         }
 
-        //
+        
         [HttpPost]
-        public async Task<ActionResult<Address>> PostEndereco([FromBody] AddressDTO address)
+        public async Task<ActionResult<Address>> PostAddress([FromBody] AddressDTO address)
         {
             using (var client = new HttpClient())
             {
@@ -56,7 +56,10 @@ namespace AddressAPI.Controllers
                     var stringResult = await response.Content.ReadAsStringAsync();
                     var add = Newtonsoft.Json.JsonConvert.DeserializeObject<Address>(stringResult);
 
+                    add.Complement = address.Complement;
                     add.Number = address.Number;
+                    add.Id = $"{address.ZipCode}{add.Number}";
+
 
                     var result = _addressService.Post(add);
 
@@ -69,6 +72,20 @@ namespace AddressAPI.Controllers
             }
         }
 
+        //private bool AddressExists(string id)
+        //{
+        //    return _addressService.Get(id) != null;
+        //}
+
+        //private Address AddressExists(string id)
+        //{
+        //    var address = _addressService.Get(id);
+        //    if (address == null)
+        //    {
+        //        return null;
+        //    }
+        //    return address;
+        //}
 
         [HttpPut("{id}")]
         public IActionResult Put(string id, [FromBody] Address address)

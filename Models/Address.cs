@@ -5,15 +5,12 @@ namespace Models
 {
     public class Address
     {
-        [BsonId]
-        [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+        
         public string Id { get; set; }
 
-        [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         [JsonProperty("cep")]
         public string ZipCode { get; set; }
 
-        [BsonRepresentation(MongoDB.Bson.BsonType.Int32)]
         [JsonProperty("numero")]
         public int Number { get; set; }
 
@@ -31,5 +28,8 @@ namespace Models
 
         [JsonProperty("bairro")]
         public string Neighborhood { get; set; }
+
+
+      
     }
 }

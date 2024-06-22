@@ -10,5 +10,6 @@ namespace Models.DTO
     {
         public string ZipCode { get; set; }
         public int Number { get; set; }
+        public string Complement { get; set; }
     }
 }

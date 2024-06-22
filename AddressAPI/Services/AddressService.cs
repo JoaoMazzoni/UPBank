@@ -21,9 +21,6 @@ namespace AddressAPI.Services
         }
 
 
-
-       
-
         public Address Post(Address address)
         {
             _address.InsertOne(address);
@@ -35,7 +32,7 @@ namespace AddressAPI.Services
 
 
         public Address Get(string id) => 
-            _address.Find<Address>(address => address.ZipCode == id).FirstOrDefault();
+            _address.Find<Address>(address => address.Id == id).FirstOrDefault();
 
 
         public void Update(string id, Address addressIn) =>

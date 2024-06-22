@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CustomerAPI.Data;
 using Models;
+using CustomerAPI.Services;
+using Models.DTO;
 
 namespace CustomerAPI.Controllers
 {
@@ -11,10 +13,12 @@ namespace CustomerAPI.Controllers
     public class CustomersController : ControllerBase
     {
         private readonly CustomerAPIContext _context;
+        private readonly AddressService _addressService;
 
-        public CustomersController(CustomerAPIContext context)
+        public CustomersController(CustomerAPIContext context, AddressService addressService)
         {
             _context = context;
+            _addressService = addressService;
         }
 
         // GET: api/Customers
@@ -36,6 +40,7 @@ namespace CustomerAPI.Controllers
             {
                 return NotFound();
             }
+
             var customer = await _context.Customer.FindAsync(document);
 
             if (customer == null)
@@ -80,8 +85,25 @@ namespace CustomerAPI.Controllers
         // POST: api/Customers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
+        public async Task<ActionResult<Customer>> PostCustomer(CustomerDTO customerDTO)
         {
+          
+            var customer = new Customer(customerDTO);
+
+            var address = _addressService.ValidationAddress(customerDTO.AddressDTO.ZipCode+ customerDTO.AddressDTO.Number);
+
+            if (address == null)
+            {
+                Address add = _addressService.PostAddress(customerDTO.AddressDTO).Result;
+                
+                customer.Address = add;
+            }
+            else
+            {
+                customer.Address = address;
+            }
+
+
             if (_context.Customer == null)
             {
                 return Problem("Entity set 'CustomerAPIContext.Customer'  is null.");
