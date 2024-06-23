@@ -1,0 +1,29 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Models;
+
+namespace EmployeeAPI.Data
+{
+    public class EmployeeAPIContext : DbContext
+    {
+        public EmployeeAPIContext (DbContextOptions<EmployeeAPIContext> options)
+            : base(options)
+        {
+        }
+
+        public DbSet<Models.Employee> Employee { get; set; } = default!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Configurar o índice no campo Register da classe Employee
+            modelBuilder.Entity<Models.Employee>()
+                .HasIndex(e => e.Register)
+                .IsUnique(); // Opcional: Adicione se quiser que o índice seja único
+        }
+    }
+}
