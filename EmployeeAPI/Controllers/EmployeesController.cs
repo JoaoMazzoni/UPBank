@@ -60,7 +60,7 @@ namespace EmployeeAPI.Controllers
             try
             {
                 var employee = await _context.Employee.FindAsync(id);
-                employee.Address = await _addressService.GetAddressByAPI(employee.AddressId);
+                employee.Address = _addressService.GetAddressByAPI(employee.AddressId).Result;
 
                 if (employee == null)
                 {
@@ -75,7 +75,7 @@ namespace EmployeeAPI.Controllers
             }
         }
 
-        [HttpGet("/Managers")]
+        [HttpGet("Get/Managers")]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeeManagers()
         {
             if (_context.Employee == null)
