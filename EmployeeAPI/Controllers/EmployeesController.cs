@@ -75,7 +75,7 @@ namespace EmployeeAPI.Controllers
             }
         }
 
-        [HttpGet("Get/Managers")]
+        [HttpGet("get/managers")]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeeManagers()
         {
             if (_context.Employee == null)
@@ -91,6 +91,23 @@ namespace EmployeeAPI.Controllers
                 }
 
                 return employees;
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet("get/customers_requests")]
+        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomerResquests()
+        {
+            try
+            {
+                ApiConsumer<List<Customer>> apiCostumer = new ApiConsumer<List<Customer>>("https://localhost:7045/api/Customers/");
+
+                var costumers = await apiCostumer.Get("byRequest/true", true);
+
+                return costumers;
             }
             catch (Exception ex)
             {
@@ -177,6 +194,27 @@ namespace EmployeeAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpPatch("{manager}/accept/{customer}")]
+        public async Task<ActionResult<Customer>> AcceptAccountRequest(string customer, string manager)
+        {
+            var employee = await _context.Employee.FindAsync(manager);
+
+            if (employee == null)
+            {
+                return NotFound("not was possible to find this employee, Document: " + manager);
+            }
+            if (employee.Manager)
+            {
+                var customerApi = new ApiConsumer<Customer>("https://localhost:7045/api/Customers/");
+                var customerAccpted = customerApi.Patch(customer);
+
+                return customerAccpted;
+            }
+            else
+                return Problem("This employee not is a manager");
+
         }
 
         private bool EmployeeExists(string id)
