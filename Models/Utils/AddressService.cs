@@ -1,32 +1,30 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Models;
+﻿using Models;
 using Models.DTO;
 using Models.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
-namespace CustomerAPI.Services
+namespace Models.Utils
 {
     public class AddressService
     {
         private static readonly HttpClient _httpClient = new HttpClient();
-
-        public Address ValidationAddress(string id)
+        
+        public async Task<Address> GetAddressByAPI(string id)
         {
-            //consume the company api
             try
             {
-                var response = _httpClient.GetAsync($"https://localhost:7238/api/Addresses/{id}").Result;
+                var response = await _httpClient.GetAsync($"https://localhost:7238/api/Addresses/{id}");
                 if (response.IsSuccessStatusCode)
                 {
-                    var address = JsonConvert.DeserializeObject<Address>(response.Content.ReadAsStringAsync().Result);
+                    string addressReturn = await response.Content.ReadAsStringAsync();
+                    JsonSerializerSettings settings = new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() };
+                    var address = JsonConvert.DeserializeObject<Address>(addressReturn, settings);
                     if (address != null)
                     {
                         return address;
                     }
-
                 }
             }
             catch (HttpRequestException ex)
@@ -39,6 +37,7 @@ namespace CustomerAPI.Services
             }
             return null;
         }
+
 
 
         public async Task<Address> PostAddress(AddressDTO add)
@@ -58,5 +57,7 @@ namespace CustomerAPI.Services
                 throw;
             }
         }
+
+        
     }
 }
