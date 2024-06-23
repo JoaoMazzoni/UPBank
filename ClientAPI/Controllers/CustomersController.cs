@@ -66,27 +66,17 @@ namespace CustomerAPI.Controllers
             return customer;
         }
 
-
-        [HttpGet("byAddressId")]
-        public async Task<ActionResult<List<Customer>>> GetCustomersByAddressId([FromQuery] string AddressId)
+        [HttpPatch("{document}")]
+        public async Task<ActionResult<Customer>> PatchCustomerRequest(string document)
         {
-            var customers = await _context.Customer.Where(customer => customer.AddressId == AddressId).ToListAsync();
-            if (customers == null || customers.Count == 0)
-            {
-                return NotFound("Nenhum cliente encontrado com o AddressId fornecido.");
-            }
-            return Ok(customers);
-        }
+            var customer = await _context.Customer.FindAsync(document);
 
-        // PUT: api/Customers/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{document}")]
-        public async Task<IActionResult> PutCustomer(string document, Customer customer)
-        {
-            if (document != customer.Document)
+            if (customer == null)
             {
-                return BadRequest();
+                return NotFound();
             }
+
+            customer.AccountRequest = false;
 
             _context.Entry(customer).State = EntityState.Modified;
 
@@ -106,8 +96,115 @@ namespace CustomerAPI.Controllers
                 }
             }
 
-            return NoContent();
+            customer = GetCustomer(document).Result.Value;
+
+            return customer;
         }
+
+
+        [HttpGet("byRequest/true")]
+        public async Task<ActionResult<List<Customer>>> GetCustomersByRequest()
+        {
+            var customers = await _context.Customer.Where(customer => customer.AccountRequest == true).ToListAsync();
+
+            foreach (var customer in customers)
+            {
+                if (customer.AddressId != null)
+                {
+                    customer.Address = await _addressService.GetAddressByAPI(customer.AddressId);
+                }
+            }
+            return customers;
+
+        }
+
+
+
+        [HttpGet("byAddressId")]
+        public async Task<ActionResult<List<Customer>>> GetCustomersByAddressId([FromQuery] string AddressId)
+        {
+            var customers = await _context.Customer.Where(customer => customer.AddressId == AddressId).ToListAsync();
+            if (customers == null || customers.Count == 0)
+            {
+                return NotFound("Nenhum cliente encontrado com o AddressId fornecido.");
+            }
+            return Ok(customers);
+        }
+
+
+
+        // PUT: api/Customers/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{document}")]
+        public async Task<IActionResult> PutCustomer(string document, CustomerDTO customerDTO)
+        {
+            var customer = new Customer(customerDTO);
+
+            var address = await _addressService.GetAddressByAPI(customerDTO.AddressDTO.ZipCode + customerDTO.AddressDTO.Number);
+
+            if (address == null)
+            {
+                Address add = await _addressService.PostAddress(customerDTO.AddressDTO);
+                customer.Address = add;
+            }
+            else
+            {
+                customer.Address = address;
+            }
+
+            if (document != customer.Document)
+            {
+                return BadRequest("O documento fornecido não corresponde ao documento do cliente.");
+            }
+
+            var existingCustomer = await _context.Customer.AsNoTracking().FirstOrDefaultAsync(c => c.Document == document);
+
+            if (existingCustomer == null)
+            {
+                return NotFound("Cliente não encontrado.");
+            }
+
+            try
+            {
+                if (existingCustomer.Restriction)
+                {
+                    if (existingCustomer.Restriction != customer.Restriction)
+                    {
+                        existingCustomer.Restriction = customer.Restriction;
+                        _context.Entry(existingCustomer).Property(c => c.Restriction).IsModified = true;
+                        await _context.SaveChangesAsync();
+                        return Ok("A restrição do cliente foi atualizada com sucesso.");
+                    }
+                    else
+                    {
+                        return BadRequest("Clientes com restrição não podem ter outros dados modificados.");
+                    }
+                }
+                else
+                {
+                    _context.Entry(customer).State = EntityState.Modified;
+                    _context.Entry(customer).Property(c => c.AccountRequest).IsModified = false;
+                    await _context.SaveChangesAsync();
+                    return Ok("Cliente atualizado com sucesso.");
+                }
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CustomerExists(document))
+                {
+                    return NotFound("Cliente não encontrado durante a atualização.");
+                }
+                else
+                {
+                    return StatusCode(500, "Erro de concorrência ao atualizar o cliente. Tente novamente.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao atualizar o cliente: {ex.Message}");
+            }
+        }
+
 
         // POST: api/Customers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -132,6 +229,8 @@ namespace CustomerAPI.Controllers
             {
                 return Problem("Entity set 'CustomerAPIContext.Customer' is null.");
             }
+         
+            customer.AccountRequest = true;
 
             _context.Customer.Add(customer);
             try
@@ -150,7 +249,7 @@ namespace CustomerAPI.Controllers
                 }
             }
 
-            return CreatedAtAction("GetCustomer", new { id = customer.Document }, customer);
+            return customer;
         }
 
         // DELETE: api/Customers/5
@@ -222,5 +321,7 @@ namespace CustomerAPI.Controllers
         {
             return (_context.RemovedCustomer?.Any(e => e.Document == document)).GetValueOrDefault();
         }
+
+        
     }
 }
