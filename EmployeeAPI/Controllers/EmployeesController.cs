@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EmployeeAPI.Data;
 using Models;
+using Models.DTO;
+using Models.Utils;
 
 namespace EmployeeAPI.Controllers
 {
@@ -15,39 +17,85 @@ namespace EmployeeAPI.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly EmployeeAPIContext _context;
+        private readonly AddressService _addressService;
 
         public EmployeesController(EmployeeAPIContext context)
         {
             _context = context;
+            _addressService = new();
         }
 
         // GET: api/Employees
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Employee>>> GetEmployee()
         {
-          if (_context.Employee == null)
-          {
-              return NotFound();
-          }
-            return await _context.Employee.ToListAsync();
+            if (_context.Employee == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                var employees = await _context.Employee.ToListAsync();
+                foreach (var employee in employees)
+                {
+                    employee.Address = await _addressService.GetAddressByAPI(employee.AddressId);
+                }
+
+                return employees;
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
         }
 
         // GET: api/Employees/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Employee>> GetEmployee(string id)
         {
-          if (_context.Employee == null)
-          {
-              return NotFound();
-          }
-            var employee = await _context.Employee.FindAsync(id);
-
-            if (employee == null)
+            if (_context.Employee == null)
             {
                 return NotFound();
             }
+            try
+            {
+                var employee = await _context.Employee.FindAsync(id);
+                employee.Address = await _addressService.GetAddressByAPI(employee.AddressId);
 
-            return employee;
+                if (employee == null)
+                {
+                    return NotFound();
+                }
+
+                return employee;
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet("/Managers")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeeManagers()
+        {
+            if (_context.Employee == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                var employees = await _context.Employee.Where(e => e.Manager == true).ToListAsync();
+                foreach (var employee in employees)
+                {
+                    employee.Address = await _addressService.GetAddressByAPI(employee.AddressId);
+                }
+
+                return employees;
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
         }
 
         // PUT: api/Employees/5
@@ -82,12 +130,15 @@ namespace EmployeeAPI.Controllers
 
         // POST: api/Employees
         [HttpPost]
-        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+        public async Task<ActionResult<Employee>> PostEmployee(EmployeeDTO employeeDTO)
         {
-          if (_context.Employee == null)
-          {
-              return Problem("Entity set 'EmployeeAPIContext.Employee'  is null.");
-          }
+            if (_context.Employee == null)
+            {
+                return Problem("Entity set 'EmployeeAPIContext.Employee'  is null.");
+            }
+
+            var employee = BuildEmployee(employeeDTO).Result;
+
             _context.Employee.Add(employee);
             try
             {
@@ -131,6 +182,20 @@ namespace EmployeeAPI.Controllers
         private bool EmployeeExists(string id)
         {
             return (_context.Employee?.Any(e => e.Document == id)).GetValueOrDefault();
+        }
+        private async Task<Employee> BuildEmployee(EmployeeDTO employeeDTO)
+        {
+            string addressId = employeeDTO.AddressDTO.ZipCode + employeeDTO.AddressDTO.Number;
+
+            Address address = _addressService.GetAddressByAPI(addressId).Result;
+
+            if (address == null)
+                address = _addressService.PostAddress(employeeDTO.AddressDTO).Result;
+
+            Employee employee = new Employee(employeeDTO);
+            employee.Address = address;
+
+            return employee;
         }
     }
 }
