@@ -128,8 +128,8 @@ namespace AccountAPI.Migrations
                 {
                     Number = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     AgencyNumber = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    MainCustomerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SecundaryCustomerId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    MainClientId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SecundaryClientId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Restriction = table.Column<bool>(type: "bit", nullable: false),
                     CreditCardNumber = table.Column<long>(type: "bigint", nullable: true),
                     SpecialLimit = table.Column<double>(type: "float", nullable: false),
@@ -146,14 +146,14 @@ namespace AccountAPI.Migrations
                         principalColumn: "Number",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Account_Client_MainCustomerId",
-                        column: x => x.MainCustomerId,
+                        name: "FK_Account_Client_MainClientId",
+                        column: x => x.MainClientId,
                         principalTable: "Client",
                         principalColumn: "Document",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Account_Client_SecundaryCustomerId",
-                        column: x => x.SecundaryCustomerId,
+                        name: "FK_Account_Client_SecundaryClientId",
+                        column: x => x.SecundaryClientId,
                         principalTable: "Client",
                         principalColumn: "Document",
                         onDelete: ReferentialAction.Restrict);
@@ -243,14 +243,14 @@ namespace AccountAPI.Migrations
                 column: "CreditCardNumber");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Account_MainCustomerId",
+                name: "IX_Account_MainClientId",
                 table: "Account",
-                column: "MainCustomerId");
+                column: "MainClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Account_SecundaryCustomerId",
+                name: "IX_Account_SecundaryClientId",
                 table: "Account",
-                column: "SecundaryCustomerId");
+                column: "SecundaryClientId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Agency_AddressId",

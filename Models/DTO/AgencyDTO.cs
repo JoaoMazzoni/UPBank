@@ -1,16 +1,12 @@
-﻿
+﻿using System.ComponentModel.DataAnnotations;
 
-using System.ComponentModel.DataAnnotations;
+namespace Models.DTO;
 
-namespace Models.DTO
+public class AgencyDTO
 {
-    public class AgencyDTO
-    {
-        [Key]
-        public string Number { get; set; }
-        public int Address { get; set; }
-        public string CNPJ { get; set; }
-        public List<string> Employees { get; set; }
-        public bool Restriction { get; set; }
-    }
+    public string Number { get; set; }
+    public int Address { get; set; }
+    public string CNPJ { get; set; }
+    public List<string> Employees { get; set; }
+    public bool Restriction { get; set; }
 }

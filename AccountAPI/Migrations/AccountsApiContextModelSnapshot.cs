@@ -39,14 +39,14 @@ namespace AccountAPI.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MainCustomerId")
+                    b.Property<string>("MainClientId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("Restriction")
                         .HasColumnType("bit");
 
-                    b.Property<string>("SecundaryCustomerId")
+                    b.Property<string>("SecundaryClientId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<double>("SpecialLimit")
@@ -58,9 +58,9 @@ namespace AccountAPI.Migrations
 
                     b.HasIndex("CreditCardNumber");
 
-                    b.HasIndex("MainCustomerId");
+                    b.HasIndex("MainClientId");
 
-                    b.HasIndex("SecundaryCustomerId");
+                    b.HasIndex("SecundaryClientId");
 
                     b.ToTable("Account");
                 });
@@ -318,24 +318,24 @@ namespace AccountAPI.Migrations
                         .WithMany()
                         .HasForeignKey("CreditCardNumber");
 
-                    b.HasOne("Models.Client", "MainCustomer")
+                    b.HasOne("Models.Client", "MainClient")
                         .WithMany()
-                        .HasForeignKey("MainCustomerId")
+                        .HasForeignKey("MainClientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Models.Client", "SecundaryCustomer")
+                    b.HasOne("Models.Client", "SecundaryClient")
                         .WithMany()
-                        .HasForeignKey("SecundaryCustomerId")
+                        .HasForeignKey("SecundaryClientId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Agency");
 
                     b.Navigation("CreditCard");
 
-                    b.Navigation("MainCustomer");
+                    b.Navigation("MainClient");
 
-                    b.Navigation("SecundaryCustomer");
+                    b.Navigation("SecundaryClient");
                 });
 
             modelBuilder.Entity("Models.Agency", b =>
@@ -397,7 +397,7 @@ namespace AccountAPI.Migrations
             modelBuilder.Entity("Models.Operation", b =>
                 {
                     b.HasOne("Models.Account", "Account")
-                        .WithMany("Extract")
+                        .WithMany("Statement")
                         .HasForeignKey("AccountNumber");
 
                     b.Navigation("Account");
@@ -424,9 +424,9 @@ namespace AccountAPI.Migrations
 
             modelBuilder.Entity("Models.Account", b =>
                 {
-                    b.Navigation("Extract");
-
                     b.Navigation("OperationAccounts");
+
+                    b.Navigation("Statement");
                 });
 
             modelBuilder.Entity("Models.Agency", b =>

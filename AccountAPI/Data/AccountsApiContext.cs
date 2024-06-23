@@ -48,22 +48,20 @@ public class AccountsApiContext : DbContext
 
         // Define a relação de um para muitos entre Conta e Cliente
         modelBuilder.Entity<Account>()
-            .HasOne(a => a.SecundaryCustomer)
+            .HasOne(a => a.SecundaryClient)
             .WithMany()
-            .HasForeignKey(a => a.SecundaryCustomerId)
+            .HasForeignKey(a => a.SecundaryClientId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Account>()
-            .HasOne(a => a.MainCustomer)
+            .HasOne(a => a.MainClient)
             .WithMany()
-            .HasForeignKey(a => a.MainCustomerId)
+            .HasForeignKey(a => a.MainClientId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Define chaves compostas
         modelBuilder.Entity<OperationAccount>().HasKey(ac => new { ac.AccountId, ac.OperationId });
         modelBuilder.Entity<AgencyEmployee>().HasKey(ac => new { ac.AgencyId, ac.EmployeeId });
-
-        // Remove 'DELETE CASCADE' para evitar comportamento ciclico
     }
 
     public DbSet<Account> Account { get; set; } = default!;
