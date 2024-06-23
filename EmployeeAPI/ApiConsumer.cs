@@ -13,7 +13,7 @@ namespace EmployeeAPI
             _httpClient = new HttpClient();
             _baseUrl = baseUrl;
         }
-
+        
         public T Get(string endpoint)
         {
             var response = _httpClient.GetAsync(endpoint).Result;
