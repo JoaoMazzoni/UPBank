@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CustomerAPI.Data;
 using Models;
-using CustomerAPI.Services;
 using Models.DTO;
+using Models.Utils;
 
 namespace CustomerAPI.Controllers
 {
@@ -29,7 +29,17 @@ namespace CustomerAPI.Controllers
             {
                 return NotFound();
             }
-            return await _context.Customer.ToListAsync();
+            var customers =  await _context.Customer.ToListAsync();
+
+            foreach(var customer in customers)
+            {
+                if(customer.AddressId != null)
+                {
+                    customer.Address = await _addressService.GetAddressByAPI(customer.AddressId);
+                }
+            }
+
+            return customers;
         }
 
         // GET: api/Customers/5
@@ -48,7 +58,24 @@ namespace CustomerAPI.Controllers
                 return NotFound();
             }
 
+            if(customer.AddressId != null)
+            {
+                customer.Address = await _addressService.GetAddressByAPI(customer.AddressId);
+            }
+
             return customer;
+        }
+
+
+        [HttpGet("byAddressId")]
+        public async Task<ActionResult<List<Customer>>> GetCustomersByAddressId([FromQuery] string AddressId)
+        {
+            var customers = await _context.Customer.Where(customer => customer.AddressId == AddressId).ToListAsync();
+            if (customers == null || customers.Count == 0)
+            {
+                return NotFound("Nenhum cliente encontrado com o AddressId fornecido.");
+            }
+            return Ok(customers);
         }
 
         // PUT: api/Customers/5
@@ -87,15 +114,13 @@ namespace CustomerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Customer>> PostCustomer(CustomerDTO customerDTO)
         {
-          
             var customer = new Customer(customerDTO);
 
-            var address = _addressService.ValidationAddress(customerDTO.AddressDTO.ZipCode+ customerDTO.AddressDTO.Number);
+            var address = await _addressService.GetAddressByAPI(customerDTO.AddressDTO.ZipCode + customerDTO.AddressDTO.Number);
 
             if (address == null)
             {
-                Address add = _addressService.PostAddress(customerDTO.AddressDTO).Result;
-                
+                Address add = await _addressService.PostAddress(customerDTO.AddressDTO);
                 customer.Address = add;
             }
             else
@@ -103,11 +128,11 @@ namespace CustomerAPI.Controllers
                 customer.Address = address;
             }
 
-
             if (_context.Customer == null)
             {
-                return Problem("Entity set 'CustomerAPIContext.Customer'  is null.");
+                return Problem("Entity set 'CustomerAPIContext.Customer' is null.");
             }
+
             _context.Customer.Add(customer);
             try
             {
@@ -162,7 +187,7 @@ namespace CustomerAPI.Controllers
             catch (Exception e)
             {
 
-                return Problem($"Aeronave não removida \n {e.Message}"); 
+                return Problem($"Cliente não removido \n {e.Message}"); 
                 
             }
             
@@ -180,7 +205,8 @@ namespace CustomerAPI.Controllers
                 Salary = customer.Salary,
                 Email = customer.Email,
                 Phone = customer.Phone,
-                Address = customer.Address
+                Address = customer.Address,
+                AddressId = customer.AddressId
             };
 
             return removedCustomer;
