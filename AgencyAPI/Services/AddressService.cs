@@ -1,6 +1,7 @@
 ﻿using Models;
 using Models.DTO;
 using Newtonsoft.Json;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 
 namespace AgencyAPI.Services
@@ -24,7 +25,7 @@ namespace AgencyAPI.Services
 
         public async Task<Address> GetAddress(string zipCode)
         {
-            var response = await _client.GetAsync($"https://localhost:5001/api/addresses/{zipCode}");
+            var response = await _client.GetAsync($"https:/viacep.com.br/{zipCode}/json");
 
             if (response.IsSuccessStatusCode)
             {
@@ -40,6 +41,7 @@ namespace AgencyAPI.Services
 
             try
             {
+
                 var content = new StringContent(JsonConvert.SerializeObject(address), Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response = await _client.PostAsync("https://localhost:5001/api/addresses", content);
