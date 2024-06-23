@@ -131,7 +131,12 @@ namespace AgencyAPI.Controllers
             }
 
             else
+            {
+                _context.Update(agency); 
+                await _context.SaveChangesAsync();
                 return BadRequest("The agency is restricted.");
+            }
+                
 
             return NoContent(); 
         }
@@ -201,7 +206,7 @@ namespace AgencyAPI.Controllers
         [HttpGet("AccountsPerProfile/{profile}")]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccountsPerProfile(string profile)
         {
-            return await _accountService.GetAccountsPerProfile(profile));
+            return await _accountService.GetAccountsPerProfile(profile);
         }
     }
 }

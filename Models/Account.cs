@@ -21,6 +21,6 @@ namespace Models
         public double Balance { get; set; }
         public List<Operation> Extract { get; set;}
 
-
+        public Profile AccountProfile { get; set; }
     }
 }

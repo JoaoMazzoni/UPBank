@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Humanizer;
+using Models;
 using Newtonsoft.Json;
 using System.Text;
 using static Models.Account;
@@ -37,23 +38,29 @@ namespace AgencyAPI.Services
         public async Task<List<Account>> GetAccountsPerProfile(string profile)
         {
             var response = await _client.GetAsync("https://localhost:5001/api/accounts");
-
             if (response.IsSuccessStatusCode)
             {
-                List<Account> AccountsPerProfile = new();
-
                 var accounts = await response.Content.ReadFromJsonAsync<List<Account>>();
-                if (Enum.TryParse(profile, out Profile profileEnum))
+                if (accounts != null)
                 {
-                    foreach (var account in accounts)
+                    var accountsPerProfile = accounts.Where(a => a.AccountProfile.Equals(profile)).ToList();
+                    if (accountsPerProfile.Any())
                     {
-
+                        return accountsPerProfile;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"No accounts found for profile: {profile}");
                     }
                 }
             }
             else
-                return null;
+            {
+                Console.WriteLine("Error retrieving accounts from API");
+            }
+            return null; // Return null if response is not successful or accounts are null
         }
+
 
         public async Task<Account> PostAccount(Account account)
         {
