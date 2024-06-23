@@ -31,7 +31,7 @@ namespace EmployeeAPI
             return objectReturn;
         }
 
-        public T Post(string endpoint, T obj)
+        public async Task<T> Post(string endpoint, T obj)
         {
             string json = JsonConvert.SerializeObject(obj);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -44,7 +44,7 @@ namespace EmployeeAPI
             T objReturn = JsonConvert.DeserializeObject<T>(strResponse);
             return objReturn;
         }
-        public T Patch(string endpoint)
+        public async Task <T> Patch(string endpoint)
         {
             var response = _httpClient.PatchAsync(_baseUrl + endpoint, null).Result;
 
@@ -52,6 +52,7 @@ namespace EmployeeAPI
             response.EnsureSuccessStatusCode();
 
             T objReturn = JsonConvert.DeserializeObject<T>(strResponse);
+
             return objReturn;
         }
     }
