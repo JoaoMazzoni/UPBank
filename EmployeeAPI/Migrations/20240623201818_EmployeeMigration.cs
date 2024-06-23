@@ -14,7 +14,8 @@ namespace EmployeeAPI.Migrations
                 {
                     Document = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Manager = table.Column<bool>(type: "bit", nullable: false),
-                    Register = table.Column<int>(type: "int", nullable: false),
+                    Register = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BirthDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -27,12 +28,6 @@ namespace EmployeeAPI.Migrations
                 {
                     table.PrimaryKey("PK_Employee", x => x.Document);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Employee_Register",
-                table: "Employee",
-                column: "Register",
-                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

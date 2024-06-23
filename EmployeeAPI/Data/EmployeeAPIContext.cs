@@ -9,7 +9,7 @@ namespace EmployeeAPI.Data
 {
     public class EmployeeAPIContext : DbContext
     {
-        public EmployeeAPIContext (DbContextOptions<EmployeeAPIContext> options)
+        public EmployeeAPIContext(DbContextOptions<EmployeeAPIContext> options)
             : base(options)
         {
         }
@@ -18,12 +18,10 @@ namespace EmployeeAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
-            // Configurar o índice no campo Register da classe Employee
-            modelBuilder.Entity<Models.Employee>()
-                .HasIndex(e => e.Register)
-                .IsUnique(); // Opcional: Adicione se quiser que o índice seja único
+            modelBuilder.Entity<Employee>()
+            .Property(e => e.Register)
+            .UseIdentityColumn(1,1);
+            
         }
     }
 }

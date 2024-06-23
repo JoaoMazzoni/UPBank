@@ -54,15 +54,15 @@ namespace EmployeeAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Register")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Register"), 1L, 1);
 
                     b.Property<double>("Salary")
                         .HasColumnType("float");
 
                     b.HasKey("Document");
-
-                    b.HasIndex("Register")
-                        .IsUnique();
 
                     b.ToTable("Employee");
                 });
