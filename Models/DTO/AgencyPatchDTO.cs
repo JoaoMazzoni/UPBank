@@ -1,13 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Models.DTO
 {
-    public class AgencyDTO
+    public class AgencyPatchDTO
     {
-        [Key]
-        public string Number { get; set; }
         public AddressDTO Address { get; set; }
-        public string CNPJ { get; set; }
         public List<string> Employees { get; set; }
         public bool Restriction { get; set; }
     }

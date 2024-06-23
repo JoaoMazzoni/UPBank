@@ -1,4 +1,5 @@
 ﻿using Models;
+using Models.DTO;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -21,8 +22,22 @@ namespace AgencyAPI.Services
                 return null;
         }
 
+        public async Task<Address> GetAddress(string zipCode)
+        {
+            var response = await _client.GetAsync($"https://localhost:5001/api/addresses/{zipCode}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var address = await response.Content.ReadFromJsonAsync<Address>();
+                return address;
+            }
+            else
+                return null;
+        }
+
         public async Task<Address> PostAddress(Address address)
         {
+
             try
             {
                 var content = new StringContent(JsonConvert.SerializeObject(address), Encoding.UTF8, "application/json");
