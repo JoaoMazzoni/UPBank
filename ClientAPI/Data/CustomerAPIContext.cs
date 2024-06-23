@@ -25,6 +25,8 @@ namespace CustomerAPI.Data
 
         public DbSet<Models.Customer> Customer { get; set; } = default!;
         public DbSet<Models.RemovedCustomer> RemovedCustomer { get; set; } = default!;
+        public DbSet<Models.Customer> AccountRequest { get; set; } = default!;
+
 
     }
 }
