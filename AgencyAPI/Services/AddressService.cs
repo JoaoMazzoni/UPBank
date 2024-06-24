@@ -25,7 +25,7 @@ namespace AgencyAPI.Services
 
         public async Task<Address> GetAddress(string zipCode)
         {
-            var response = await _client.GetAsync($"https://localhost:7238/Addresses");
+            var response = await _client.GetAsync($"https://localhost:7238/api/Addresses/{zipCode}");
 
             if (response.IsSuccessStatusCode)
             {

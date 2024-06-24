@@ -64,8 +64,11 @@ namespace AgencyAPI.Controllers
                 return BadRequest("Address not found.");
 
             else
+            { 
                 agency.Address = address;
-            agency.AddressId = address.Id;
+                agency.AddressId = address.Id;
+            }
+               
             agency.Number = agencyDTO.Number;
             agency.Restriction = agencyDTO.Restriction;
             agency.CNPJ = agencyDTO.CNPJ;
@@ -153,23 +156,29 @@ namespace AgencyAPI.Controllers
             {
                 return NotFound();
             }
-            return await _context.Agency.Include(e => e.Employees).ToListAsync();
+            var agencies = await _context.Agency.Include(e => e.Employees).ToListAsync();
+            foreach (var agency in agencies)
+            {
+                agency.Address = await _addressService.GetAddress(agency.AddressId);
+            }
+
+            return Ok(agencies);
         }
 
         // GET: api/Agencies/5
-        [HttpGet("{id}")]
+        [HttpGet("{number}")]
         public async Task<ActionResult<Agency>> GetAgency(string number)
         {
             if (_context.Agency == null)
             {
                 return NotFound();
             }
-            var agency = await _context.Agency.Include(a => a.Address).Include(e => e.Employees).Where(c => c.Number == number).SingleOrDefaultAsync();
+            var agency = await _context.Agency.Include(e => e.Employees).Where(c => c.Number == number).SingleOrDefaultAsync();
 
             if (agency == null)
-            {
                 return NotFound();
-            }
+            else
+                agency.Address = await _addressService.GetAddress(agency.AddressId);
 
             return agency;
         }
