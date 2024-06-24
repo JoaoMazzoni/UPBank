@@ -8,8 +8,9 @@ namespace AccountAPI.Services;
 public class AccountService
 {
     private HttpClient _http = new();
-    private string _agencyBaseUri = "https://localhost:7196/api";
-    private string _clientBaseUri = "https://localhost:7045/api";
+    private readonly string _agencyBaseUri = "https://localhost:7196/api";
+    private readonly string _clientBaseUri = "https://localhost:7045/api";
+    private readonly string _employeeBaseUri = "https://localhost:7040/api";
 
     public Account PopulateAccountData(AccountDTO dto)
     {
@@ -26,6 +27,76 @@ public class AccountService
             Balance = dto.Balance,
             Profile = dto.Profile
         };
+    }
+
+    public DisabledAccount DisableAccountFeatures(Account account)
+    {
+        account.Restriction = true;
+        if (account.CreditCard != null)
+        {
+            account.CreditCard.Active = false;
+        }
+
+        return new DisabledAccount
+        {
+            Number = account.Number,
+            AgencyNumber = account.AgencyNumber,
+            SavingsAccountNumber = account.SavingsAccountNumber,
+            MainClientId = account.MainClientId,
+            SecondaryClientId = account.SecondaryClientId,
+            CreditCard = account.CreditCard,
+            Restriction = account.Restriction,
+            SpecialLimit = account.SpecialLimit,
+            Date = account.Date,
+            Balance = account.Balance,
+            Profile = account.Profile
+        };
+    }
+
+    public Account EnableAccountFeatures(DisabledAccount disabledAccount)
+    {
+        disabledAccount.Restriction = false;
+        if (disabledAccount.CreditCard != null)
+        {
+            disabledAccount.CreditCard.Active = false;
+        }
+
+        return new Account
+        {
+            Number = disabledAccount.Number,
+            AgencyNumber = disabledAccount.AgencyNumber,
+            SavingsAccountNumber = disabledAccount.SavingsAccountNumber,
+            MainClientId = disabledAccount.MainClientId,
+            SecondaryClientId = disabledAccount.SecondaryClientId,
+            CreditCard = disabledAccount.CreditCard,
+            Restriction = disabledAccount.Restriction,
+            SpecialLimit = disabledAccount.SpecialLimit,
+            Date = disabledAccount.Date,
+            Balance = disabledAccount.Balance,
+            Profile = disabledAccount.Profile
+        };
+    }
+
+    public async Task<bool> ValidateManagerRequest(string managerId)
+    {
+        Employee? employee;
+        try
+        {
+            var employeeResponse = await _http.GetAsync($"{_employeeBaseUri}/{managerId}");
+            employee = JsonConvert.DeserializeObject<Employee>(employeeResponse.Content.ToJson());
+
+            if (employee is not { Manager: true })
+            {
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
+        return true;
     }
 
     public async Task<CreditCard?> GenerateCreditCard(AccountProfile clientProfile, string clientCpf)
