@@ -66,59 +66,6 @@ namespace CustomerAPI.Controllers
             return customer;
         }
 
-        [HttpPatch("{document}")]
-        public async Task<ActionResult<Customer>> PatchCustomerRequest(string document)
-        {
-            var customer = await _context.Customer.FindAsync(document);
-
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
-            customer.AccountRequest = false;
-
-            _context.Entry(customer).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CustomerExists(document))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            customer = GetCustomer(document).Result.Value;
-
-            return customer;
-        }
-
-
-        [HttpGet("byRequest/true")]
-        public async Task<ActionResult<List<Customer>>> GetCustomersByRequest()
-        {
-            var customers = await _context.Customer.Where(customer => customer.AccountRequest == true).ToListAsync();
-
-            foreach (var customer in customers)
-            {
-                if (customer.AddressId != null)
-                {
-                    customer.Address = await _addressService.GetAddressByAPI(customer.AddressId);
-                }
-            }
-            return customers;
-
-        }
-
-
 
         [HttpGet("byAddressId")]
         public async Task<ActionResult<List<Customer>>> GetCustomersByAddressId([FromQuery] string AddressId)
@@ -183,7 +130,6 @@ namespace CustomerAPI.Controllers
                 else
                 {
                     _context.Entry(customer).State = EntityState.Modified;
-                    _context.Entry(customer).Property(c => c.AccountRequest).IsModified = false;
                     await _context.SaveChangesAsync();
                     return Ok("Cliente atualizado com sucesso.");
                 }
@@ -229,8 +175,6 @@ namespace CustomerAPI.Controllers
             {
                 return Problem("Entity set 'CustomerAPIContext.Customer' is null.");
             }
-         
-            customer.AccountRequest = true;
 
             _context.Customer.Add(customer);
             try

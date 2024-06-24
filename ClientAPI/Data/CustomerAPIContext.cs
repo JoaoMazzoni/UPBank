@@ -17,16 +17,15 @@ namespace CustomerAPI.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Customer>().ToTable("Customer");
-            modelBuilder.Entity<RemovedCustomer>().ToTable("RemovedCustomer");
-            modelBuilder.Entity<Customer>().HasKey(c => c.Document);
-            modelBuilder.Entity<RemovedCustomer>().HasKey(c => c.Document); 
+            modelBuilder.Entity<Models.Customer>().ToTable(null);
+            modelBuilder.Entity<Models.Customer>().HasBaseType(null).ToTable("AccountCreated");
+            modelBuilder.Entity<Models.Customer>().HasBaseType(null).ToTable("RemovedCustomer");
+            modelBuilder.Entity<Models.Customer>().HasKey(c => c.Document);
         }
 
         public DbSet<Models.Customer> Customer { get; set; } = default!;
-        public DbSet<Models.RemovedCustomer> RemovedCustomer { get; set; } = default!;
-        public DbSet<Models.Customer> AccountRequest { get; set; } = default!;
-
+        public DbSet<Models.Customer> AccountCreated { get; set; } = default!;
+        public DbSet<Models.Customer> RemovedCustomer { get; set; } = default!;
 
     }
 }

@@ -9,6 +9,5 @@ namespace Models.DTO
     public class CustomerDTO : PersonDTO
     {
         public bool Restriction { get; set; }
-        public bool AccountRequest { get; set; }
     }
 }
