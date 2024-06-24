@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountAPI.Migrations
 {
     [DbContext(typeof(AccountsApiContext))]
-    partial class AccountsApiContextModelSnapshot : ModelSnapshot
+    [Migration("20240624143146_V4")]
+    partial class V4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,51 +102,6 @@ namespace AccountAPI.Migrations
                     b.ToTable("CreditCard");
                 });
 
-            modelBuilder.Entity("Models.DeletedAccount", b =>
-                {
-                    b.Property<string>("Number")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("AgencyNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Balance")
-                        .HasColumnType("float");
-
-                    b.Property<long?>("CreditCardNumber")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("MainClientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Profile")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Restriction")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("SavingsAccountNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SecondaryClientId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("SpecialLimit")
-                        .HasColumnType("float");
-
-                    b.HasKey("Number");
-
-                    b.HasIndex("CreditCardNumber");
-
-                    b.ToTable("DeletedAccount", (string)null);
-                });
-
             modelBuilder.Entity("Models.Operation", b =>
                 {
                     b.Property<int>("Id")
@@ -187,15 +144,6 @@ namespace AccountAPI.Migrations
                 });
 
             modelBuilder.Entity("Models.Account", b =>
-                {
-                    b.HasOne("Models.CreditCard", "CreditCard")
-                        .WithMany()
-                        .HasForeignKey("CreditCardNumber");
-
-                    b.Navigation("CreditCard");
-                });
-
-            modelBuilder.Entity("Models.DeletedAccount", b =>
                 {
                     b.HasOne("Models.CreditCard", "CreditCard")
                         .WithMany()
