@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models.DTO
+namespace Models.CopyClasses
 {
-    public class CustomerDTO : PersonDTO
+    public class AccountRequest : Person
     {
         public bool Restriction { get; set; }
     }
