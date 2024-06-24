@@ -32,9 +32,9 @@ namespace AccountAPI.Migrations
                 columns: table => new
                 {
                     Number = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    AgencyId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AgencyNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MainClientId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SecundaryClientId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecondaryClientId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Restriction = table.Column<bool>(type: "bit", nullable: false),
                     CreditCardNumber = table.Column<long>(type: "bigint", nullable: true),
                     SpecialLimit = table.Column<double>(type: "float", nullable: false),

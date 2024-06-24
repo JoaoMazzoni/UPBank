@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountAPI.Migrations
 {
     [DbContext(typeof(AccountsApiContext))]
-    [Migration("20240624125015_Initial")]
-    partial class Initial
+    [Migration("20240624140219_v3")]
+    partial class v3
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -28,7 +28,7 @@ namespace AccountAPI.Migrations
                     b.Property<string>("Number")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("AgencyId")
+                    b.Property<string>("AgencyNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -51,7 +51,11 @@ namespace AccountAPI.Migrations
                     b.Property<bool>("Restriction")
                         .HasColumnType("bit");
 
-                    b.Property<string>("SecundaryClientId")
+                    b.Property<string>("SavingsAccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SecondaryClientId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("SpecialLimit")

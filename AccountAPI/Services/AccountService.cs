@@ -11,27 +11,38 @@ public class AccountService
     private string _agencyBaseUri = "https://localhost:7196/api";
     private string _clientBaseUri = "https://localhost:7045/api";
 
-    public async Task<Account> PopulateAccountDataAsync(AccountDTO dto)
+    public Account PopulateAccountData(AccountDTO dto)
     {
-        var account = new Account
+        return new Account
         {
             Number = dto.Number,
+            AgencyNumber = dto.AgencyNumber,
+            SavingsAccountNumber = dto.SavingsAccountNumber,
             MainClientId = dto.MainClientId,
-            SecundaryClientId = dto.SecundaryClientId,
+            SecondaryClientId = dto.SecondaryClientId,
             Restriction = dto.Restriction,
             SpecialLimit = dto.SpecialLimit,
             Date = dto.Date,
             Balance = dto.Balance,
             Profile = dto.Profile
         };
-        return account;
     }
 
     public async Task<CreditCard?> GenerateCreditCard(AccountProfile clientProfile, string clientCpf)
     {
+        Client? client = new();
+        long cardNumber;
+        double cardLimit;
+        DateTime expirationDate;
+        CreditCardFlags cardFlag;
         try
         {
             var clientResponse = await _http.GetAsync($"{_clientBaseUri}/{clientCpf}");
+            client = JsonConvert.DeserializeObject<Client>(clientResponse.Content.ToJson());
+            if (client == null)
+            {
+                return null;
+            }
         }
         catch (Exception e)
         {
@@ -39,11 +50,7 @@ public class AccountService
             throw;
         }
 
-        var ownerName = "";
-        long cardNumber;
-        double cardLimit;
-        DateTime expirationDate;
-        CreditCardFlags cardFlag;
+        var ownerName = client.Name;
         var cardSecurityCode = $"{new Random().Next(1, 999)}".PadLeft(3, '0');
         switch (clientProfile)
         {
@@ -76,7 +83,8 @@ public class AccountService
             Date = expirationDate,
             Owner = ownerName,
             SecurityCode = cardSecurityCode,
-            Limit = cardLimit
+            Limit = cardLimit,
+            Active = false
         };
         return creditCard;
     }
