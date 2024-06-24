@@ -56,7 +56,7 @@ namespace AddressAPI.Controllers
                     var add = Newtonsoft.Json.JsonConvert.DeserializeObject<Address>(stringResult);
                     if (add == null)
                     {
-                        return BadRequest("CEP Inválido. Erro ao obter endereço do serviço ViaCEP");
+                        return Problem("CEP Inválido. Erro ao obter endereço do serviço ViaCEP");
                     }
 
                     add.Complement = address.Complement;
@@ -65,7 +65,7 @@ namespace AddressAPI.Controllers
 
                     if(add.City == null || add.State == null || add.Street == null)
                     {
-                        return BadRequest("CEP Inválido. Erro ao obter endereço do serviço ViaCEP");
+                        return Problem("CEP Inválido. Erro ao obter endereço do serviço ViaCEP");
                     }
 
                     var result = _addressService.Post(add);
@@ -74,7 +74,7 @@ namespace AddressAPI.Controllers
                 }
                 else
                 {
-                    return BadRequest("Erro ao obter endereço do serviço ViaCEP");
+                    return Problem("Erro ao obter endereço do serviço ViaCEP");
                 }
             }
         }      

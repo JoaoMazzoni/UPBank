@@ -161,7 +161,16 @@ namespace CustomerAPI.Controllers
             var customer = new AccountRequest(customerDTO);
 
             var address = await _addressService.GetAddressByAPI(customerDTO.AddressDTO.ZipCode + customerDTO.AddressDTO.Number);
-            
+
+           
+
+            if (!ValidateCPF(customerDTO.Document))
+            {
+                return BadRequest("CPF inválido.");
+            }
+
+            var cpf = FormatCPF(customerDTO.Document);
+            customer.Document = cpf;
 
             if (address == null)
             {
@@ -177,14 +186,17 @@ namespace CustomerAPI.Controllers
             {
                 return Problem("Entity set 'CustomerAPIContext.Customer' is null.");
             }
+
             if(CustomerExists(customerDTO.Document))
             {
                 return Conflict("O cliente informado já possui uma conta.");
             }
+
             if(AccountRequestExists(customerDTO.Document))
             {
                 return Conflict("O cliente informado já possui uma solicitação de conta.");
             }
+
             if(RemovedCustomerExists(customerDTO.Document))
             {
                 var accountRequest  = ToAccountRequest(await _context.RemovedCustomer.FindAsync(customerDTO.Document));
@@ -194,7 +206,17 @@ namespace CustomerAPI.Controllers
                 return Ok("O cliente estava removido e foi recuperado para solicitar uma nova conta.");
             }
 
-            _context.AccountRequest.Add(customer);
+            if(customer.Address.Id == null)
+            {
+                return BadRequest("Endereço inválido.");
+            }
+            else
+            {
+                _context.AccountRequest.Add(customer);
+            }
+
+           
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -355,7 +377,16 @@ namespace CustomerAPI.Controllers
         {
             return (_context.AccountRequest?.Any(e => e.Document == document)).GetValueOrDefault();
         }
-        
+     
+        private bool ValidateCPF(string cpf)
+        {
+            return Models.Utils.CPFValidator.IsValid(cpf);
+        }
+
+        private string FormatCPF(string cpf)
+        {
+            return Models.Utils.CPFValidator.FormatCPF(cpf);
+        }
     }
 }
 

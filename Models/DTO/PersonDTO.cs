@@ -10,7 +10,7 @@ namespace Models.DTO
     public class PersonDTO
     {
         public string Name { get; set; }
-        [Key, MaxLength(14), MinLength(14)]
+        [Key]
         public string Document { get; set; }
         public string BirthDate { get; set; }
         public string Gender { get; set; }
