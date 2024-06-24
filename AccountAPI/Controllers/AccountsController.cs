@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.DTO;
+using NuGet.Protocol;
 
 namespace AccountAPI.Controllers;
 
@@ -58,13 +59,14 @@ public class AccountsController : ControllerBase
     // PUT: api/Accounts/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutAccount(string id, Account account)
+    public async Task<IActionResult> PutAccount(string id, AccountDTO accountDto)
     {
-        if (id != account.Number)
+        if (id != accountDto.Number)
         {
             return BadRequest();
         }
 
+        var account = _accountService.PopulateAccountData(accountDto);
         _context.Entry(account).State = EntityState.Modified;
 
         try
@@ -97,7 +99,7 @@ public class AccountsController : ControllerBase
         }
 
         var account = _accountService.PopulateAccountData(accountDto);
-        //account.CreditCard = await _accountService.GenerateCreditCard(account.Profile, account.MainClientId);
+        account.CreditCard = await _accountService.GenerateCreditCard(account.Profile, account.MainClientId);
         _context.Account.Add(account);
 
         try
@@ -119,9 +121,95 @@ public class AccountsController : ControllerBase
         return CreatedAtAction("GetAccount", new { id = accountDto.Number }, accountDto);
     }
 
+    // POST: api/Accounts/Recover
+    [HttpPost("Activate")]
+    public async Task<ActionResult<AccountDTO>> ActivateAccount(ActivateAccountDTO activateAccountRequest)
+    {
+        if (_context.Account == null)
+        {
+            return Problem("Entity set 'AccountsApiContext.Account'  is null.");
+        }
+
+        var isManagerRequest = await _accountService.ValidateManagerRequest(activateAccountRequest.EmployeeId);
+        if (!isManagerRequest)
+        {
+            return Unauthorized("Access level denied.");
+        }
+
+        var account = await _context.Account.FindAsync(activateAccountRequest.AccountNumber);
+        if (account == null)
+        {
+            return NotFound();
+        }
+
+        if (account.MainClientId != activateAccountRequest.ClientDocument)
+        {
+            return BadRequest("Client document doesn't match target account.");
+        }
+
+        if (!account.Restriction)
+        {
+            return BadRequest("Account already activated.");
+        }
+
+        account.Restriction = false;
+        await _context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    // POST: api/Accounts/Recover
+    [HttpPost("Recover")]
+    public async Task<ActionResult<AccountDTO>> RecoverAccount(RecoverAccountDTO recoverAccountRequest)
+    {
+        if (_context.Account == null)
+        {
+            return Problem("Entity set 'AccountsApiContext.Account'  is null.");
+        }
+
+        var isManagerRequest = await _accountService.ValidateManagerRequest(recoverAccountRequest.EmployeeId);
+        if (!isManagerRequest)
+        {
+            return Unauthorized("Access level denied.");
+        }
+
+        var disabledAccount = await _context.DisabledAccount.FindAsync(recoverAccountRequest.AccountNumber);
+        if (disabledAccount == null)
+        {
+            return NotFound();
+        }
+
+        if (disabledAccount.MainClientId != recoverAccountRequest.ClientDocument)
+        {
+            return BadRequest("Client document doesn't match target account.");
+        }
+
+        var enabledAccount = _accountService.EnableAccountFeatures(disabledAccount);
+        await _context.Account.AddAsync(enabledAccount);
+        _context.DisabledAccount.Remove(disabledAccount);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            if (AccountExists(enabledAccount.Number))
+            {
+                return Conflict();
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return CreatedAtAction("GetAccount", new { id = enabledAccount.Number }, enabledAccount);
+    }
+
     // DELETE: api/Accounts/5
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteAccount(string id)
+    public async Task<IActionResult> DisableAccount(string id)
     {
         if (_context.Account == null)
         {
@@ -134,6 +222,7 @@ public class AccountsController : ControllerBase
             return NotFound();
         }
 
+        _context.DisabledAccount.Add(_accountService.DisableAccountFeatures(account));
         _context.Account.Remove(account);
         await _context.SaveChangesAsync();
 
