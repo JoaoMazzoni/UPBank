@@ -9,6 +9,7 @@ using EmployeeAPI.Data;
 using Models;
 using Models.DTO;
 using Models.Utils;
+using Models.CopyClasses;
 
 namespace EmployeeAPI.Controllers
 {
@@ -190,7 +191,10 @@ namespace EmployeeAPI.Controllers
                 return NotFound();
             }
 
+            DeletedEmployee deletedEmployee = new(employee);
+
             _context.Employee.Remove(employee);
+            _context.DeletedEmployee.Add(deletedEmployee);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -210,7 +214,7 @@ namespace EmployeeAPI.Controllers
                 var customerApi = new ApiConsumer<Customer>("https://localhost:7045/api/Customers/");
                 var customerAccpted = customerApi.Patch(customer);
 
-                return Ok();//customerAccpted;
+                return await customerAccpted;
             }
             else
                 return Problem("This employee not is a manager");

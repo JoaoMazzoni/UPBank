@@ -2,18 +2,19 @@
 
 #nullable disable
 
-namespace CustomerAPI.Migrations
+namespace EmployeeAPI.Migrations
 {
-    public partial class InitialMigration : Migration
+    public partial class EmployeeMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Customer",
+                name: "DeletedEmployee",
                 columns: table => new
                 {
                     Document = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Restriction = table.Column<bool>(type: "bit", nullable: false),
+                    Manager = table.Column<bool>(type: "bit", nullable: false),
+                    Register = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BirthDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -24,15 +25,17 @@ namespace CustomerAPI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Customer", x => x.Document);
+                    table.PrimaryKey("PK_DeletedEmployee", x => x.Document);
                 });
 
             migrationBuilder.CreateTable(
-                name: "RemovedCustomer",
+                name: "Employee",
                 columns: table => new
                 {
                     Document = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Restriction = table.Column<bool>(type: "bit", nullable: false),
+                    Manager = table.Column<bool>(type: "bit", nullable: false),
+                    Register = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BirthDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -43,17 +46,17 @@ namespace CustomerAPI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RemovedCustomer", x => x.Document);
+                    table.PrimaryKey("PK_Employee", x => x.Document);
                 });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Customer");
+                name: "DeletedEmployee");
 
             migrationBuilder.DropTable(
-                name: "RemovedCustomer");
+                name: "Employee");
         }
     }
 }

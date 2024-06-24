@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Models;
+using Models.CopyClasses;
 
 namespace EmployeeAPI.Data
 {
@@ -15,6 +16,7 @@ namespace EmployeeAPI.Data
         }
 
         public DbSet<Models.Employee> Employee { get; set; } = default!;
+        public DbSet<DeletedEmployee> DeletedEmployee { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

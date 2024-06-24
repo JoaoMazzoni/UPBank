@@ -10,23 +10,24 @@ namespace CustomerAPI.Data
 {
     public class CustomerAPIContext : DbContext
     {
-        public CustomerAPIContext (DbContextOptions<CustomerAPIContext> options)
+        public CustomerAPIContext(DbContextOptions<CustomerAPIContext> options)
             : base(options)
         {
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Customer>().ToTable("Customer");
-            modelBuilder.Entity<RemovedCustomer>().ToTable("RemovedCustomer");
-            modelBuilder.Entity<Customer>().HasKey(c => c.Document);
-            modelBuilder.Entity<RemovedCustomer>().HasKey(c => c.Document); 
+            modelBuilder.Entity<Models.Customer>().ToTable("Customer");
+            modelBuilder.Entity<Models.CopyClasses.RemovedCustomer>().ToTable("RemovedCustomer");
+            modelBuilder.Entity<Models.CopyClasses.AccountRequest>().ToTable("AccountRequest");
+            modelBuilder.Entity<Models.Customer>().HasKey(c => c.Document);
         }
 
         public DbSet<Models.Customer> Customer { get; set; } = default!;
-        public DbSet<Models.RemovedCustomer> RemovedCustomer { get; set; } = default!;
-        public DbSet<Models.Customer> AccountRequest { get; set; } = default!;
-
-
+        public DbSet<Models.CopyClasses.RemovedCustomer> RemovedCustomer { get; set; } = default!;
+        public DbSet<Models.CopyClasses.AccountRequest> AccountRequest { get; set; } = default!;
     }
 }
+
+
+

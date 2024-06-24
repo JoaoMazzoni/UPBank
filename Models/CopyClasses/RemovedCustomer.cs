@@ -1,6 +1,6 @@
 ﻿
 
-namespace Models
+namespace Models.CopyClasses
 {
     public class RemovedCustomer : Person
     {
