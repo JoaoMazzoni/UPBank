@@ -10,18 +10,8 @@ public class Operation
 {
     public int Id { get; set; }
     public DateTime Date { get; set; }
-
-    public enum Type
-    {
-        Withdraw,
-        Deposit,
-        Transfer,
-        Loan,
-        Payment
-    }
-
+    public Type Type { get; set; }
     public Account? Account { get; set; }
     public double Value { get; set; }
-
     public ICollection<OperationAccount> OperationAccounts { get; set; }
 }

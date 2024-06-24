@@ -17,7 +17,7 @@ public class AccountService
         {
             Number = dto.Number,
             MainClientId = dto.MainClientId,
-            SecundaryClientId = dto.SecundaryClientId,
+            SecondaryClientId = dto.SecundaryClientId,
             Restriction = dto.Restriction,
             SpecialLimit = dto.SpecialLimit,
             Date = dto.Date,
