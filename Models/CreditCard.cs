@@ -15,4 +15,6 @@ public class CreditCard
     public string SecurityCode { get; set; }
     public string Owner { get; set; }
     public string Flag { get; set; }
+    
+    public bool Active { get; set; }
 }

@@ -19,7 +19,8 @@ namespace AccountAPI.Migrations
                     Limit = table.Column<double>(type: "float", nullable: false),
                     SecurityCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Owner = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Flag = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Flag = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Active = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
