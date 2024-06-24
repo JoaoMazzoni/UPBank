@@ -12,7 +12,7 @@ namespace AgencyAPI.Services
 
         public async Task<List<Address>> GetAddresses()
         {
-            var response = await _client.GetAsync("https://localhost:5001/api/addresses");
+            var response = await _client.GetAsync("https://localhost:7238");
 
             if (response.IsSuccessStatusCode)
             {
@@ -25,7 +25,7 @@ namespace AgencyAPI.Services
 
         public async Task<Address> GetAddress(string zipCode)
         {
-            var response = await _client.GetAsync($"https:/viacep.com.br/{zipCode}/json");
+            var response = await _client.GetAsync($"https://localhost:7238/Addresses");
 
             if (response.IsSuccessStatusCode)
             {
@@ -36,15 +36,13 @@ namespace AgencyAPI.Services
                 return null;
         }
 
-        public async Task<Address> PostAddress(Address address)
+        public async Task<Address> PostAddress(AddressDTO address)
         {
-
             try
             {
-
                 var content = new StringContent(JsonConvert.SerializeObject(address), Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PostAsync("https://localhost:5001/api/addresses", content);
+                HttpResponseMessage response = await _client.PostAsync("https://localhost:7238/api/Addresses", content);
 
                 response.EnsureSuccessStatusCode();
                 string addressResponse = await response.Content.ReadAsStringAsync();

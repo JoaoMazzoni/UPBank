@@ -10,14 +10,14 @@ namespace Models.DTO
     public class AddressDTO
     {
         [BsonId]
-        public static int Id;
+        public static string Id;
         public string Complement { get; set; }
         public int Number { get; set; }
         public string ZipCode { get; set; }
 
-        public static int CreateId (int number, string zipCode)
+        public static string CreateId (int number, string zipCode)
         {
-           return Id = Convert.ToInt32(zipCode) + number;
+           return Id = zipCode + number;
         }
     }
 }

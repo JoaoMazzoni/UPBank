@@ -56,7 +56,7 @@ namespace AgencyAPI.Controllers
             else
                 agency.Employees = employees;
 
-            Address address = await _addressService.GetAddress(agencyDTO.Address.ZipCode);
+            Address address = await _addressService.PostAddress(agencyDTO.Address);
             address.Number = agencyDTO.Address.Number;
             address.Complement = agencyDTO.Address.Complement;
 
@@ -65,6 +65,10 @@ namespace AgencyAPI.Controllers
 
             else
                 agency.Address = address;
+            agency.AddressId = address.Id;
+            agency.Number = agencyDTO.Number;
+            agency.Restriction = agencyDTO.Restriction;
+            agency.CNPJ = agencyDTO.CNPJ;
 
             _context.Agency.Add(agency);
             try
@@ -149,7 +153,7 @@ namespace AgencyAPI.Controllers
             {
                 return NotFound();
             }
-            return await _context.Agency.Include(a => a.Address).Include(e => e.Employees).ToListAsync();
+            return await _context.Agency.Include(e => e.Employees).ToListAsync();
         }
 
         // GET: api/Agencies/5

@@ -23,7 +23,7 @@ namespace AgencyAPI.Services
 
         public async Task<Employee> GetEmployee(string cpf)
         {
-            var response = await _client.GetAsync($"https://localhost:5001/api/employees/{cpf}");
+            var response = await _client.GetAsync($"https://localhost:7040/api/Employees/{cpf}");
 
             if (response.IsSuccessStatusCode)
             {

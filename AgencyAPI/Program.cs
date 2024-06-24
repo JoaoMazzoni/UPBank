@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using AgencyAPI.Data;
+using AgencyAPI.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AgencyAPIContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AgencyAPIContext") ?? throw new InvalidOperationException("Connection string 'AgencyAPIContext' not found.")));
@@ -9,7 +10,14 @@ builder.Services.AddDbContext<AgencyAPIContext>(options =>
 
 builder.Services.AddControllers();
 
+
+builder.Services.AddScoped<AddressService>();
+builder.Services.AddScoped<EmployeeService>();
+builder.Services.AddScoped<AccountService>();
+
+
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 

@@ -11,6 +11,7 @@ namespace Models
     {
         public bool Manager { get; set; }
         public int Register { get; set; }
+
         public Employee() { }
         public Employee(EmployeeDTO dto) : base(dto)
         {

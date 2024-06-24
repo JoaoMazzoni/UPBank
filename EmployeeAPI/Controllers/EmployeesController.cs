@@ -210,7 +210,7 @@ namespace EmployeeAPI.Controllers
                 var customerApi = new ApiConsumer<Customer>("https://localhost:7045/api/Customers/");
                 var customerAccpted = customerApi.Patch(customer);
 
-                return customerAccpted;
+                return Ok();//customerAccpted;
             }
             else
                 return Problem("This employee not is a manager");
