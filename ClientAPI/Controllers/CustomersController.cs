@@ -5,6 +5,7 @@ using CustomerAPI.Data;
 using Models;
 using Models.DTO;
 using Models.Utils;
+using Models.CopyClasses;
 
 namespace CustomerAPI.Controllers
 {

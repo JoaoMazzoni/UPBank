@@ -21,6 +21,86 @@ namespace CustomerAPI.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("Models.CopyClasses.AccountRequest", b =>
+                {
+                    b.Property<string>("Document")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AddressId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BirthDate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Restriction")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("Salary")
+                        .HasColumnType("float");
+
+                    b.HasKey("Document");
+
+                    b.ToTable("AccountRequest", (string)null);
+                });
+
+            modelBuilder.Entity("Models.CopyClasses.RemovedCustomer", b =>
+                {
+                    b.Property<string>("Document")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AddressId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BirthDate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Restriction")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("Salary")
+                        .HasColumnType("float");
+
+                    b.HasKey("Document");
+
+                    b.ToTable("RemovedCustomer", (string)null);
+                });
+
             modelBuilder.Entity("Models.Customer", b =>
                 {
                     b.Property<string>("Document")
@@ -59,46 +139,6 @@ namespace CustomerAPI.Migrations
                     b.HasKey("Document");
 
                     b.ToTable("Customer", (string)null);
-                });
-
-            modelBuilder.Entity("Models.RemovedCustomer", b =>
-                {
-                    b.Property<string>("Document")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("AddressId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BirthDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Restriction")
-                        .HasColumnType("bit");
-
-                    b.Property<double>("Salary")
-                        .HasColumnType("float");
-
-                    b.HasKey("Document");
-
-                    b.ToTable("RemovedCustomer", (string)null);
                 });
 #pragma warning restore 612, 618
         }
