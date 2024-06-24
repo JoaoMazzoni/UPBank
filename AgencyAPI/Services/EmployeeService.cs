@@ -7,6 +7,12 @@ namespace AgencyAPI.Services
     public class EmployeeService
     {
         private static readonly HttpClient _client = new HttpClient();
+        private readonly AddressService _addressService;
+
+        public EmployeeService(AddressService address)
+        {
+            _addressService = address;
+        }
 
         public async Task<List<Employee>> GetEmployees()
         {
@@ -15,6 +21,10 @@ namespace AgencyAPI.Services
             if (response.IsSuccessStatusCode)
             {
                 var employees = await response.Content.ReadFromJsonAsync<List<Employee>>();
+                foreach (var employee in employees)
+                {
+                    employee.Address = await _addressService.GetAddress(employee.AddressId);
+                }
                 return employees;
             }
             else
@@ -28,6 +38,7 @@ namespace AgencyAPI.Services
             if (response.IsSuccessStatusCode)
             {
                 var employee = await response.Content.ReadFromJsonAsync<Employee>();
+                employee.Address = await _addressService.GetAddress(employee.AddressId);
                 return employee;
             }
             else

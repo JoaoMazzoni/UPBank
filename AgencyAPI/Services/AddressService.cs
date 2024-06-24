@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Models;
 using Models.DTO;
 using Newtonsoft.Json;
 using System.Runtime.ConstrainedExecution;
@@ -43,6 +44,24 @@ namespace AgencyAPI.Services
                 var content = new StringContent(JsonConvert.SerializeObject(address), Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response = await _client.PostAsync("https://localhost:7238/api/Addresses", content);
+
+                response.EnsureSuccessStatusCode();
+                string addressResponse = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<Address>(addressResponse);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<Address> PutAddress(string zipCode, AddressDTO address)
+        {
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(address), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await _client.PutAsync($"https://localhost:7238/api/Addresses/{zipCode}", content);
 
                 response.EnsureSuccessStatusCode();
                 string addressResponse = await response.Content.ReadAsStringAsync();

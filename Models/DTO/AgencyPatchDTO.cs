@@ -10,6 +10,5 @@ namespace Models.DTO
     {
         public AddressDTO Address { get; set; }
         public List<string> Employees { get; set; }
-        public bool Restriction { get; set; }
     }
 }

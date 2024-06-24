@@ -64,11 +64,11 @@ namespace AgencyAPI.Controllers
                 return BadRequest("Address not found.");
 
             else
-            { 
+            {
                 agency.Address = address;
                 agency.AddressId = address.Id;
             }
-               
+
             agency.Number = agencyDTO.Number;
             agency.Restriction = agencyDTO.Restriction;
             agency.CNPJ = agencyDTO.CNPJ;
@@ -89,28 +89,27 @@ namespace AgencyAPI.Controllers
                     return BadRequest(e.Message);
                 }
             }
-                    return CreatedAtAction("GetAgency", new { id = agency.Number }, agency);
+            return CreatedAtAction("GetAgency", new { id = agency.Number }, agency);
         }
 
         // PUT: api/Agencies/5
         [HttpPut("{number}")]
         public async Task<IActionResult> PutAgency(string number, AgencyPatchDTO agencyPatchDTO)
         {
-            var agency = await _context.Agency.FindAsync(number);
-
-            if (agencyPatchDTO.Restriction != null)
-                agency.Restriction = agencyPatchDTO.Restriction;
+            var agencyGet = await GetAgency(number);
+            var agency = agencyGet.Value;
 
             if (!agency.Restriction)
             {
                 if (number != agency.Number)
                     return BadRequest("The agency number is invalid.");
 
-                if (agencyPatchDTO.Address != null && (agency.Address.ZipCode != agencyPatchDTO.Address.ZipCode || agency.Address.Number != agencyPatchDTO.Address.Number || agency.Address.Complement != agencyPatchDTO.Address.Complement))
+                if ((agency.Address.ZipCode != agencyPatchDTO.Address.ZipCode && agencyPatchDTO.Address.ZipCode != "") || (agency.Address.Number != agencyPatchDTO.Address.Number && agencyPatchDTO.Address.Number != 0) || (agency.Address.Complement != agencyPatchDTO.Address.Complement && agencyPatchDTO.Address.Complement != ""))
                 {
                     agency.Address = await _addressService.GetAddress(agencyPatchDTO.Address.ZipCode);
                     agency.Address.Number = agencyPatchDTO.Address.Number;
                     agency.Address.Complement = agencyPatchDTO.Address.Complement;
+                    await _addressService.PutAddress(agencyPatchDTO.Address.ZipCode, agencyPatchDTO.Address);
                 }
 
                 if (agencyPatchDTO.Employees != null)
@@ -123,6 +122,7 @@ namespace AgencyAPI.Controllers
                 try
                 {
                     await _context.SaveChangesAsync();
+                    return Ok(agency);
                 }
                 catch (DbUpdateConcurrencyException e)
                 {
@@ -139,13 +139,38 @@ namespace AgencyAPI.Controllers
 
             else
             {
-                _context.Update(agency); 
-                await _context.SaveChangesAsync();
                 return BadRequest("The agency is restricted.");
             }
-                
+        }
 
-            return NoContent(); 
+        // PUT: api/Agencies/5
+        [HttpPut("Restricted/{number}")]
+        public async Task<IActionResult> PutRestrictedAgency(string number)
+        {
+            var agencyGet = await GetAgency(number);
+            var agency = agencyGet.Value;
+            if (agency.Restriction)
+                agency.Restriction = false;
+            else
+                agency.Restriction = true;
+
+            _context.Update(agency);
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(agency);
+            }
+            catch (DbUpdateConcurrencyException e)
+            {
+                if (!AgencyExists(number))
+                {
+                    return NotFound("Agency not found.");
+                }
+                else
+                {
+                    return BadRequest(e.Message);
+                }
+            }
         }
 
         // GET: api/Agencies
@@ -160,6 +185,12 @@ namespace AgencyAPI.Controllers
             foreach (var agency in agencies)
             {
                 agency.Address = await _addressService.GetAddress(agency.AddressId);
+               
+                var employees = agency.Employees;
+                foreach (var employee in employees)
+                {
+                    employee.Address = await _addressService.GetAddress(employee.AddressId);
+                }
             }
 
             return Ok(agencies);
@@ -178,13 +209,21 @@ namespace AgencyAPI.Controllers
             if (agency == null)
                 return NotFound();
             else
+            {
                 agency.Address = await _addressService.GetAddress(agency.AddressId);
-
+                
+                var employees = agency.Employees;
+                
+                foreach (var employee in employees)
+                    employee.Address = await _addressService.GetAddress(employee.AddressId);
+            }
             return agency;
         }
 
+
+
         // DELETE: api/Agencies/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{number}")]
         public async Task<IActionResult> DeleteAgency(string number)
         {
             if (_context.Agency == null)
@@ -192,6 +231,7 @@ namespace AgencyAPI.Controllers
                 return NotFound();
             }
             var agency = await _context.Agency.FindAsync(number);
+       
             if (agency == null)
             {
                 return NotFound();
@@ -202,6 +242,8 @@ namespace AgencyAPI.Controllers
 
             return NoContent();
         }
+
+
 
         private bool AgencyExists(string id)
         {
