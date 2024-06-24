@@ -100,7 +100,7 @@ namespace AccountAPI.Migrations
                     b.ToTable("CreditCard");
                 });
 
-            modelBuilder.Entity("Models.DeletedAccount", b =>
+            modelBuilder.Entity("Models.DisabledAccount", b =>
                 {
                     b.Property<string>("Number")
                         .HasColumnType("nvarchar(450)");
@@ -142,7 +142,7 @@ namespace AccountAPI.Migrations
 
                     b.HasIndex("CreditCardNumber");
 
-                    b.ToTable("DeletedAccount", (string)null);
+                    b.ToTable("DisabledAccount", (string)null);
                 });
 
             modelBuilder.Entity("Models.Operation", b =>
@@ -195,7 +195,7 @@ namespace AccountAPI.Migrations
                     b.Navigation("CreditCard");
                 });
 
-            modelBuilder.Entity("Models.DeletedAccount", b =>
+            modelBuilder.Entity("Models.DisabledAccount", b =>
                 {
                     b.HasOne("Models.CreditCard", "CreditCard")
                         .WithMany()

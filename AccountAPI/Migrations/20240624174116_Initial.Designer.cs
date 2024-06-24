@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountAPI.Migrations
 {
     [DbContext(typeof(AccountsApiContext))]
-    [Migration("20240624140219_v3")]
-    partial class v3
+    [Migration("20240624174116_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -102,6 +102,51 @@ namespace AccountAPI.Migrations
                     b.ToTable("CreditCard");
                 });
 
+            modelBuilder.Entity("Models.DisabledAccount", b =>
+                {
+                    b.Property<string>("Number")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AgencyNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Balance")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("CreditCardNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MainClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Profile")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Restriction")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SavingsAccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SecondaryClientId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("SpecialLimit")
+                        .HasColumnType("float");
+
+                    b.HasKey("Number");
+
+                    b.HasIndex("CreditCardNumber");
+
+                    b.ToTable("DisabledAccount", (string)null);
+                });
+
             modelBuilder.Entity("Models.Operation", b =>
                 {
                     b.Property<int>("Id")
@@ -144,6 +189,15 @@ namespace AccountAPI.Migrations
                 });
 
             modelBuilder.Entity("Models.Account", b =>
+                {
+                    b.HasOne("Models.CreditCard", "CreditCard")
+                        .WithMany()
+                        .HasForeignKey("CreditCardNumber");
+
+                    b.Navigation("CreditCard");
+                });
+
+            modelBuilder.Entity("Models.DisabledAccount", b =>
                 {
                     b.HasOne("Models.CreditCard", "CreditCard")
                         .WithMany()
