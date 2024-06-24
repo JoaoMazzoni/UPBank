@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgencyAPI.Migrations
 {
     [DbContext(typeof(AgencyAPIContext))]
-    [Migration("20240624165210_3Migration")]
-    partial class _3Migration
+    [Migration("20240624180357_InitialCreated")]
+    partial class InitialCreated
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

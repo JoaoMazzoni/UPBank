@@ -101,7 +101,7 @@ public class AccountService
 
     public async Task<CreditCard?> GenerateCreditCard(AccountProfile clientProfile, string clientCpf)
     {
-        Client? client = new();
+        Customer? client = new();
         long cardNumber;
         double cardLimit;
         DateTime expirationDate;
@@ -109,7 +109,7 @@ public class AccountService
         try
         {
             var clientResponse = await _http.GetAsync($"{_clientBaseUri}/{clientCpf}");
-            client = JsonConvert.DeserializeObject<Client>(clientResponse.Content.ToJson());
+            client = JsonConvert.DeserializeObject<Customer>(clientResponse.Content.ToJson());
             if (client == null)
             {
                 return null;

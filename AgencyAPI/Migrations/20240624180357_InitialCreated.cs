@@ -8,41 +8,32 @@ namespace AgencyAPI.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            //migrationbuilder.createtable(
-            //    name: "address",
-            //    columns: table => new
-            //    {
-            //        id = table.column<string>(type: "nvarchar(450)", nullable: false),
-            //        zipcode = table.column<string>(type: "nvarchar(max)", nullable: false),
-            //        number = table.column<int>(type: "int", nullable: false),
-            //        street = table.column<string>(type: "nvarchar(max)", nullable: false),
-            //        complement = table.column<string>(type: "nvarchar(max)", nullable: false),
-            //        city = table.column<string>(type: "nvarchar(max)", nullable: false),
-            //        state = table.column<string>(type: "nvarchar(max)", nullable: false),
-            //        neighborhood = table.column<string>(type: "nvarchar(max)", nullable: false)
-            //    },
-            //    constraints: table =>
-            //    {
-            //        table.primarykey("pk_address", x => x.id);
-            //    });
-
             migrationBuilder.CreateTable(
                 name: "Agency",
                 columns: table => new
                 {
                     Number = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    AddressId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    AddressId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CNPJ = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Restriction = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Agency", x => x.Number);
-                    //table.ForeignKey(
-                    //    name: "FK_Agency_Address_AddressId",
-                    //    column: x => x.AddressId,
-                    //    principalTable: "Address",
-                    //    principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AgencyHistory",
+                columns: table => new
+                {
+                    Number = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AddressId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CNPJ = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Restriction = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AgencyHistory", x => x.Number);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,15 +62,41 @@ namespace AgencyAPI.Migrations
                         principalColumn: "Number");
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Agency_AddressId",
-                table: "Agency",
-                column: "AddressId");
+            migrationBuilder.CreateTable(
+                name: "RemovedAgencyEmployee",
+                columns: table => new
+                {
+                    Document = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Manager = table.Column<bool>(type: "bit", nullable: false),
+                    Register = table.Column<int>(type: "int", nullable: false),
+                    RemovedAgencyNumber = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BirthDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Salary = table.Column<double>(type: "float", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AddressId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RemovedAgencyEmployee", x => x.Document);
+                    table.ForeignKey(
+                        name: "FK_RemovedAgencyEmployee_AgencyHistory_RemovedAgencyNumber",
+                        column: x => x.RemovedAgencyNumber,
+                        principalTable: "AgencyHistory",
+                        principalColumn: "Number");
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employee_AgencyNumber",
                 table: "Employee",
                 column: "AgencyNumber");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RemovedAgencyEmployee_RemovedAgencyNumber",
+                table: "RemovedAgencyEmployee",
+                column: "RemovedAgencyNumber");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -88,10 +105,13 @@ namespace AgencyAPI.Migrations
                 name: "Employee");
 
             migrationBuilder.DropTable(
+                name: "RemovedAgencyEmployee");
+
+            migrationBuilder.DropTable(
                 name: "Agency");
 
-            //migrationBuilder.DropTable(
-            //    name: "Address");
+            migrationBuilder.DropTable(
+                name: "AgencyHistory");
         }
     }
 }

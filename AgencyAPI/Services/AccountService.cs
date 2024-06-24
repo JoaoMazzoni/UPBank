@@ -1,4 +1,5 @@
 ﻿using Humanizer;
+using Microsoft.AspNetCore.Mvc;
 using Models;
 using Newtonsoft.Json;
 using System.Text;
@@ -12,7 +13,7 @@ namespace AgencyAPI.Services
 
         public async Task<List<Account>> GetRestrictedAccounts()
         {
-            var response = await _client.GetAsync("https://localhost:5001/api/accounts");
+            var response = await _client.GetAsync("https://localhost:7285/api/accounts");
 
             if (response.IsSuccessStatusCode)
             {
@@ -37,49 +38,53 @@ namespace AgencyAPI.Services
 
         public async Task<List<Account>> GetAccountsPerProfile(string profile)
         {
-            var response = await _client.GetAsync("https://localhost:5001/api/accounts");
+            var response = await _client.GetAsync("https://localhost:7285/api/accounts");
             if (response.IsSuccessStatusCode)
             {
                 var accounts = await response.Content.ReadFromJsonAsync<List<Account>>();
                 if (accounts != null)
                 {
-                    var accountsPerProfile = accounts.Where(a => a.AccountProfile.Equals(profile)).ToList();
+                    var accountsPerProfile = accounts.Where(a => a.Profile.Equals(profile)).ToList();
                     if (accountsPerProfile.Any())
                     {
                         return accountsPerProfile;
                     }
                     else
                     {
-                        Console.WriteLine($"No accounts found for profile: {profile}");
+                        Console.WriteLine($"Nenhuma conta do perfil: {profile}");
                     }
                 }
             }
             else
             {
-                Console.WriteLine("Error retrieving accounts from API");
+                Console.WriteLine("Erro ao recuperar contas da API");
             }
-            return null; // Return null if response is not successful or accounts are null
+            return null;
         }
 
-
-        public async Task<Account> PostAccount(Account account)
+        public async Task<ActionResult<IEnumerable<Account>>> GetActiveLoan()
         {
+            var response = await _client.GetAsync("https://localhost:7285/api/accounts");
 
-            try
+            if (response.IsSuccessStatusCode)
             {
+                List<Account> activeLoans = new();
 
-                var content = new StringContent(JsonConvert.SerializeObject(account), Encoding.UTF8, "application/json");
+                var accounts = await response.Content.ReadFromJsonAsync<List<Account>>();
 
-                HttpResponseMessage response = await _client.PostAsync("https://localhost:5001/api/accounts", content);
+                foreach (var account in accounts)
+                {
+                    if (account.OperationAccounts.Equals("Loan"))
+                        activeLoans.Add(account);
+                }
 
-                response.EnsureSuccessStatusCode();
-                string accountResponse = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<Account>(accountResponse);
+                if (activeLoans != null)
+                    return activeLoans;
+                else
+                    return null;
             }
-            catch (Exception)
-            {
+            else
                 return null;
-            }
         }
     }
 }

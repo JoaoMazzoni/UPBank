@@ -346,10 +346,6 @@ namespace AgencyAPI.Controllers
             return (_context.Agency?.Any(e => e.Number == id)).GetValueOrDefault();
         }
 
-
-
-
-
         //Get: api/Agencies/RestrictedAccounts
         [HttpGet("RestrictAccounts")]
         public async Task<ActionResult<IEnumerable<Account>>> GetRestrictedAccounts()
@@ -363,5 +359,17 @@ namespace AgencyAPI.Controllers
         {
             return await _accountService.GetAccountsPerProfile(profile);
         }
+
+
+
+
+        //Get: api/Agencies/ActiveLoan
+        [HttpGet("CustomerWithActiveLoan")]
+
+        public async Task<ActionResult<IEnumerable<Account>>> GetActiveLoan()
+        {
+            return await _accountService.GetActiveLoan();
+        }
+        
     }
 }
