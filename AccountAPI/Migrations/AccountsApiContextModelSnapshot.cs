@@ -39,7 +39,7 @@ namespace AccountAPI.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MainClientId")
+                    b.Property<string>("MainCustomerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -53,7 +53,7 @@ namespace AccountAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SecondaryClientId")
+                    b.Property<string>("SecondaryCustomerId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("SpecialLimit")
@@ -118,7 +118,7 @@ namespace AccountAPI.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MainClientId")
+                    b.Property<string>("MainCustomerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -132,7 +132,7 @@ namespace AccountAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SecondaryClientId")
+                    b.Property<string>("SecondaryCustomerId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("SpecialLimit")

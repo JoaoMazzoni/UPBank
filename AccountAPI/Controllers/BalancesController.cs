@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AccountAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Models.DTO;
 
 namespace AccountAPI.Controllers;
 
@@ -22,27 +23,25 @@ public class BalancesController : ControllerBase
     }
 
     // GET: api/Balances/5
-    [HttpGet("{id}")]
-    public string Get(int id)
+    [HttpGet("{accountNumber}")]
+    public async Task<ActionResult<BalanceDTO>> GetCurrentBalance(string? accountNumber)
     {
-        return "value";
-    }
+        if (_context.Account == null)
+        {
+            return NotFound();
+        }
 
-    // POST: api/Balances
-    [HttpPost]
-    public void Post([FromBody] string value)
-    {
-    }
+        if (accountNumber == null)
+        {
+            return BadRequest("AccountNumber argument missing.");
+        }
 
-    // PUT: api/Balances/5
-    [HttpPut("{id}")]
-    public void Put(int id, [FromBody] string value)
-    {
-    }
+        var account = await _context.Account.FindAsync(accountNumber);
+        if (account == null)
+        {
+            return NotFound();
+        }
 
-    // DELETE: api/Balances/5
-    [HttpDelete("{id}")]
-    public void Delete(int id)
-    {
+        return Ok(_balanceService.PopulateBalanceDto(account));
     }
 }

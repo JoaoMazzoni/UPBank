@@ -99,7 +99,7 @@ public class AccountsController : ControllerBase
         }
 
         var account = _accountService.PopulateAccountData(accountDto);
-        account.CreditCard = await _accountService.GenerateCreditCard(account.Profile, account.MainClientId);
+        account.CreditCard = await _accountService.GenerateCreditCard(account.Profile, account.MainCustomerId);
         _context.Account.Add(account);
 
         try
@@ -142,9 +142,9 @@ public class AccountsController : ControllerBase
             return NotFound();
         }
 
-        if (account.MainClientId != activateAccountRequest.ClientDocument)
+        if (account.MainCustomerId != activateAccountRequest.CustomerDocument)
         {
-            return BadRequest("Client document doesn't match target account.");
+            return BadRequest("Customer document doesn't match target account.");
         }
 
         if (!account.Restriction)
@@ -179,9 +179,9 @@ public class AccountsController : ControllerBase
             return NotFound();
         }
 
-        if (disabledAccount.MainClientId != recoverAccountRequest.ClientDocument)
+        if (disabledAccount.MainCustomerId != recoverAccountRequest.CustomerDocument)
         {
-            return BadRequest("Client document doesn't match target account.");
+            return BadRequest("Customer document doesn't match target account.");
         }
 
         var enabledAccount = _accountService.EnableAccountFeatures(disabledAccount);

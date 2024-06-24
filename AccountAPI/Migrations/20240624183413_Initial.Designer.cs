@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountAPI.Migrations
 {
     [DbContext(typeof(AccountsApiContext))]
-    [Migration("20240624174116_Initial")]
+    [Migration("20240624183413_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,7 +41,7 @@ namespace AccountAPI.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MainClientId")
+                    b.Property<string>("MainCustomerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -55,7 +55,7 @@ namespace AccountAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SecondaryClientId")
+                    b.Property<string>("SecondaryCustomerId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("SpecialLimit")
@@ -120,7 +120,7 @@ namespace AccountAPI.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MainClientId")
+                    b.Property<string>("MainCustomerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -134,7 +134,7 @@ namespace AccountAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SecondaryClientId")
+                    b.Property<string>("SecondaryCustomerId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("SpecialLimit")
