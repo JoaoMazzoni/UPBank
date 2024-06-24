@@ -20,6 +20,7 @@ namespace AgencyAPI.Data
 
             modelBuilder.Entity<Agency>().ToTable("Agency");
             modelBuilder.Entity<RemovedAgency>().ToTable("AgencyHistory");
+
         }
 
     }

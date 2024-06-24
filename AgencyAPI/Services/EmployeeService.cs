@@ -1,5 +1,6 @@
 ﻿using Models;
 using Newtonsoft.Json;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace AgencyAPI.Services
@@ -62,5 +63,41 @@ namespace AgencyAPI.Services
                 return null;
             }
         }
+
+        public async Task<RemovedAgencyEmployee> PostEmployeeHistory(RemovedAgencyEmployee employee)
+        {
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(employee), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await _client.PostAsync("https://localhost:5001/api/employees", content);
+
+                response.EnsureSuccessStatusCode();
+                string employeeResponse = await response.Content.ReadAsStringAsync();
+                var emp = JsonConvert.DeserializeObject<RemovedAgencyEmployee>(employeeResponse);
+                emp.Address = await _addressService.GetAddress(emp.AddressId);
+                return emp;
+                
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<Employee> DeleteEmployee(string document)
+        {
+            var response = await _client.DeleteAsync($"https://localhost:5001/api/employees/{document}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var employee = await response.Content.ReadFromJsonAsync<Employee>();
+                employee.Address = await _addressService.GetAddress(employee.AddressId);
+                return employee;
+            }
+            else
+                return null;
+        }
+       
     }
 }

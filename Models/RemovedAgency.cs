@@ -11,8 +11,9 @@ namespace Models
         public Address Address { get; set; }
         public string AddressId { get; set; }
         public string CNPJ { get; set; }
-        public List<Employee> Employees { get; set; }
+        public List<RemovedAgencyEmployee> Employees { get; set; }
         public bool Restriction { get; set; }
+        
 
         public static string RemoveMask(string cnpj)
         {

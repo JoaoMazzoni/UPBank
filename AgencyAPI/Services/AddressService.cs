@@ -47,13 +47,30 @@ namespace AgencyAPI.Services
 
                 response.EnsureSuccessStatusCode();
                 string addressResponse = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<Address>(addressResponse);
+                Address address1 = JsonConvert.DeserializeObject<Address>(addressResponse);
+                return address1;
+
             }
             catch (Exception)
             {
                 return null;
             }
         }
+
+        public async Task<Address> GetAddressById(string id)
+        {
+            var response = await _client.GetAsync($"https://localhost:7238/api/Addresses/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var address = await response.Content.ReadFromJsonAsync<Address>();
+                return address;
+            }
+            else
+                return null;
+        }
+
+
 
         public async Task<Address> PutAddress(string zipCode, AddressDTO address)
         {
@@ -67,7 +84,7 @@ namespace AgencyAPI.Services
                 string addressResponse = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<Address>(addressResponse);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return null;
             }

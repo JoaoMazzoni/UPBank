@@ -16,7 +16,6 @@ namespace AgencyAPI.Controllers
         private readonly AddressService _addressService;
         private readonly EmployeeService _employeeService;
         private readonly AccountService _accountService;
-
         public AgenciesController(AgencyAPIContext context, AddressService address, EmployeeService employee, AccountService account)
         {
             _context = context;
@@ -48,20 +47,22 @@ namespace AgencyAPI.Controllers
             }
 
             if (employees == null)
-                return BadRequest("Employee not found.");
+                return BadRequest("Funcionario não encontrado!");
 
             else if (!(employees.Find(e => e.Manager).Manager))
-                return BadRequest("The first employee must be a manager.");
+                return BadRequest("É necessário ter um gerente na agencia!");
 
             else
                 agency.Employees = employees;
 
+
             Address address = await _addressService.PostAddress(agencyDTO.Address);
+
             address.Number = agencyDTO.Address.Number;
             address.Complement = agencyDTO.Address.Complement;
 
             if (address == null)
-                return BadRequest("Address not found.");
+                return BadRequest("Endereço não encontrado!");
 
             else
             {
@@ -74,6 +75,7 @@ namespace AgencyAPI.Controllers
             agency.CNPJ = agencyDTO.CNPJ;
 
             _context.Agency.Add(agency);
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -82,11 +84,11 @@ namespace AgencyAPI.Controllers
             {
                 if (AgencyExists(agency.Number))
                 {
-                    return Conflict();
+                    return Conflict("Numero da agencia já existe!");
                 }
                 else
                 {
-                    return BadRequest(e.Message);
+                    return BadRequest("Houve um erro inesperado: " + e.Message);
                 }
             }
             return CreatedAtAction("GetAgency", new { id = agency.Number }, agency);
@@ -102,7 +104,7 @@ namespace AgencyAPI.Controllers
             if (!agency.Restriction)
             {
                 if (number != agency.Number)
-                    return BadRequest("The agency number is invalid.");
+                    return BadRequest("O numero da agencia não foi encontrado");
 
                 if ((agency.Address.ZipCode != agencyPatchDTO.Address.ZipCode && agencyPatchDTO.Address.ZipCode != "") || (agency.Address.Number != agencyPatchDTO.Address.Number && agencyPatchDTO.Address.Number != 0) || (agency.Address.Complement != agencyPatchDTO.Address.Complement && agencyPatchDTO.Address.Complement != ""))
                 {
@@ -117,8 +119,8 @@ namespace AgencyAPI.Controllers
                     foreach (var employee in agencyPatchDTO.Employees)
                         agency.Employees.Add(await _employeeService.GetEmployee(employee));
                 }
+
                 _context.Update(agency);
-                //_context.Entry(duvida).State = EntityState.Modified;
                 try
                 {
                     await _context.SaveChangesAsync();
@@ -128,11 +130,11 @@ namespace AgencyAPI.Controllers
                 {
                     if (!AgencyExists(number))
                     {
-                        return NotFound("Agency not found.");
+                        return NotFound("Agency não encontrada");
                     }
                     else
                     {
-                        return BadRequest(e.Message);
+                        return BadRequest("Houve um erro inesperado:" + e.Message);
                     }
                 }
             }
@@ -164,11 +166,11 @@ namespace AgencyAPI.Controllers
             {
                 if (!AgencyExists(number))
                 {
-                    return NotFound("Agency not found.");
+                    return NotFound("Agency não encontrada.");
                 }
                 else
                 {
-                    return BadRequest(e.Message);
+                    return BadRequest("Houve um erro inesperado" + e.Message);
                 }
             }
         }
@@ -179,13 +181,13 @@ namespace AgencyAPI.Controllers
         {
             if (_context.Agency == null)
             {
-                return NotFound();
+                return Ok("Não há agencias!");
             }
             var agencies = await _context.Agency.Include(e => e.Employees).ToListAsync();
             foreach (var agency in agencies)
             {
                 agency.Address = await _addressService.GetAddress(agency.AddressId);
-               
+
                 var employees = agency.Employees;
                 foreach (var employee in employees)
                 {
@@ -207,48 +209,146 @@ namespace AgencyAPI.Controllers
             var agency = await _context.Agency.Include(e => e.Employees).Where(c => c.Number == number).SingleOrDefaultAsync();
 
             if (agency == null)
-                return NotFound();
+                return NotFound("Agencia não foi encontrada@");
             else
             {
                 agency.Address = await _addressService.GetAddress(agency.AddressId);
-                
+
                 var employees = agency.Employees;
-                
+
                 foreach (var employee in employees)
                     employee.Address = await _addressService.GetAddress(employee.AddressId);
             }
-            return agency;
+            return Ok(agency);
         }
 
-
-
         // DELETE: api/Agencies/5
-        [HttpDelete("{number}")]
+        [HttpDelete("Delete/{number}")]
         public async Task<IActionResult> DeleteAgency(string number)
         {
             if (_context.Agency == null)
             {
-                return NotFound();
+                return NotFound("Agencia não encontada!");
             }
             var agency = await _context.Agency.FindAsync(number);
-       
-            if (agency == null)
+            var agencyDb = await GetAgency(number);
+            agencyDb = agencyDb.Value;
+
+            List<RemovedAgencyEmployee> employees = new();
+
+            foreach (var employee in agencyDb.Value.Employees)
             {
-                return NotFound();
+                var emp = await _employeeService.GetEmployee(employee.Document);
+                var employeeNew = new RemovedAgencyEmployee
+                {
+                    AddressId = emp.AddressId,
+                    Name = emp.Name,
+                    BirthDate = emp.BirthDate,
+                    Document = emp.Document,
+                    Email = emp.Email,
+                    Phone = emp.Phone,
+                    Gender = emp.Gender,
+                    Manager = emp.Manager,
+                    Register = emp.Register,
+                    Address = emp.Address,
+                    Salary = emp.Salary
+                };
+                employees.Add(employeeNew);
             }
 
-            _context.Agency.Remove(agency);
-            await _context.SaveChangesAsync();
+            Address address = await _addressService.GetAddressById(agency.AddressId);
 
-            return NoContent();
+
+            var agencyCopied = new RemovedAgency
+            {
+                Number = agency.Number,
+                AddressId = agency.AddressId,
+                Address = address,
+                Employees = employees,
+                CNPJ = agency.CNPJ,
+                Restriction = agency.Restriction
+            };
+
+            _context.AgencyHistory.Add(agencyCopied);
+            _context.Agency.Remove(agency);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException e)
+            {
+
+                return BadRequest("Houve um erro inesperado" + e.Message);
+            }
+            return Ok("Deletado com Sucesso!");
         }
 
+        // DELETE: api/Agencies/Restorage/{number}
+        [HttpDelete("Restorage/{number}")]
+        public async Task<IActionResult> RestorageAgency(string number)
+        {
+            var agencyDb = await _context.AgencyHistory.Include(e => e.Employees).Where(c => c.Number == number).SingleOrDefaultAsync();
 
+            if (agencyDb == null)
+                return NotFound("Agencia não encontada!");
+            else
+            {
+                agencyDb.Address = await _addressService.GetAddress(agencyDb.AddressId);
+                List<Employee> employees = new();
+                foreach (var employee in employees)
+                {
+                    employee.Address = await _addressService.GetAddress(employee.AddressId);
+                    var employeesNew = new Employee
+                    {
+                        AddressId = employee.AddressId,
+                        Name = employee.Name,
+                        BirthDate = employee.BirthDate,
+                        Document = employee.Document,
+                        Email = employee.Email,
+                        Phone = employee.Phone,
+                        Gender = employee.Gender,
+                        Manager = employee.Manager,
+                        Register = employee.Register,
+                        Address = employee.Address,
+                        Salary = employee.Salary
+                    };
+                    employees.Add(employeesNew);
+                }
+
+                var agencyCopied = new Agency
+                {
+                    Number = agencyDb.Number,
+                    AddressId = agencyDb.AddressId,
+                    Address = agencyDb.Address,
+                    Employees = employees,
+                    CNPJ = agencyDb.CNPJ,
+                    Restriction = agencyDb.Restriction
+                };
+
+                _context.Agency.Add(agencyCopied);
+                _context.AgencyHistory.Remove(agencyDb);
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException e)
+                {
+                    return BadRequest("Houve um erro inesperado:" + e.Message);
+                }
+                return Ok("Restauração concluida!");
+            }
+        }
 
         private bool AgencyExists(string id)
         {
             return (_context.Agency?.Any(e => e.Number == id)).GetValueOrDefault();
         }
+
+
+
+
 
         //Get: api/Agencies/RestrictedAccounts
         [HttpGet("RestrictAccounts")]
