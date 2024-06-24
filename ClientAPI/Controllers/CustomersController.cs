@@ -51,6 +51,8 @@ namespace CustomerAPI.Controllers
                 return NotFound();
             }
 
+            document = FormatCPF(document);
+
             var customer = await _context.Customer.FindAsync(document);
 
             if (customer == null)
@@ -162,7 +164,7 @@ namespace CustomerAPI.Controllers
 
             var address = await _addressService.GetAddressByAPI(customerDTO.AddressDTO.ZipCode + customerDTO.AddressDTO.Number);
 
-           
+            customer.Email = customer.Email.ToLower();
 
             if (!ValidateCPF(customerDTO.Document))
             {
@@ -187,21 +189,21 @@ namespace CustomerAPI.Controllers
                 return Problem("Entity set 'CustomerAPIContext.Customer' is null.");
             }
 
-            if(CustomerExists(customerDTO.Document))
+            if(CustomerExists(cpf))
             {
                 return Conflict("O cliente informado já possui uma conta.");
             }
 
-            if(AccountRequestExists(customerDTO.Document))
+            if(AccountRequestExists(cpf))
             {
                 return Conflict("O cliente informado já possui uma solicitação de conta.");
             }
 
-            if(RemovedCustomerExists(customerDTO.Document))
+            if(RemovedCustomerExists(cpf))
             {
-                var accountRequest  = ToAccountRequest(await _context.RemovedCustomer.FindAsync(customerDTO.Document));
+                var accountRequest  = ToAccountRequest(await _context.RemovedCustomer.FindAsync(cpf));
                 _context.AccountRequest.Add(accountRequest);
-                _context.RemovedCustomer.Remove(await _context.RemovedCustomer.FindAsync(customerDTO.Document));
+                _context.RemovedCustomer.Remove(await _context.RemovedCustomer.FindAsync(cpf));
                 await _context.SaveChangesAsync();
                 return Ok("O cliente estava removido e foi recuperado para solicitar uma nova conta.");
             }
@@ -240,7 +242,8 @@ namespace CustomerAPI.Controllers
         [HttpDelete("{document}")]
         public async Task<IActionResult> DeleteCustomer(string document)
         {
-            
+            document = FormatCPF(document);
+
             var customer = await _context.Customer.FindAsync(document);
 
             if(RemovedCustomerExists(document))
@@ -277,8 +280,10 @@ namespace CustomerAPI.Controllers
         }
 
         [HttpPatch("{document}")]
-        public async Task<IActionResult> PatchCustomer(string document)
+        public async Task<IActionResult> MoveCustomer(string document)
         {
+            document = FormatCPF(document);
+
             var accountRequest = await _context.AccountRequest.FindAsync(document);
 
             if (accountRequest == null)
@@ -287,11 +292,6 @@ namespace CustomerAPI.Controllers
             }
 
             var customer = MoveAccountRequest(accountRequest);
-
-            if (CustomerExists(document))
-            {
-                return Conflict("Cliente já existe.");
-            }
 
             _context.Customer.Add(customer);
             _context.AccountRequest.Remove(accountRequest);
@@ -306,6 +306,8 @@ namespace CustomerAPI.Controllers
                 return StatusCode(500, $"Erro ao criar o cliente: {ex.Message}");
             }
         }
+
+
 
         private RemovedCustomer CopyCustomer(Customer customer)
         {
