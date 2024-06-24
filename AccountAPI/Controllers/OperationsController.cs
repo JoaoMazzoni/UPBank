@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AccountAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,18 +13,12 @@ namespace AccountAPI.Controllers;
 public class OperationsController : ControllerBase
 {
     private readonly AccountsApiContext _context;
+    private readonly OperationService _operationService;
 
-    public OperationsController(AccountsApiContext context)
+    public OperationsController(AccountsApiContext context, OperationService operationService)
     {
         _context = context;
-    }
-
-
-    // GET: api/Operations
-    [HttpGet]
-    public IEnumerable<string> Get()
-    {
-        return new string[] { "value1", "value2" };
+        _operationService = operationService;
     }
 
     // GET: api/Operations/5

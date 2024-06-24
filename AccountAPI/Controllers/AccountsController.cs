@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models;
+using Models.DTO;
 
 namespace AccountAPI.Controllers;
 
@@ -88,14 +89,17 @@ public class AccountsController : ControllerBase
     // POST: api/Accounts
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<Account>> PostAccount(Account account)
+    public async Task<ActionResult<AccountDTO>> PostAccount(AccountDTO accountDto)
     {
         if (_context.Account == null)
         {
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
         }
 
+        var account = await _accountService.PopulateAccountDataAsync(accountDto);
+        account.CreditCard = await _accountService.GenerateCreditCard(account.Profile, account.MainClientId);
         _context.Account.Add(account);
+
         try
         {
             await _context.SaveChangesAsync();
@@ -112,7 +116,7 @@ public class AccountsController : ControllerBase
             }
         }
 
-        return CreatedAtAction("GetAccount", new { id = account.Number }, account);
+        return CreatedAtAction("GetAccount", new { id = accountDto.Number }, accountDto);
     }
 
     // DELETE: api/Accounts/5

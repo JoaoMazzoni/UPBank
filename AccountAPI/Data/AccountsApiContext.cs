@@ -33,35 +33,8 @@ public class AccountsApiContext : DbContext
             .HasForeignKey(oa => oa.OperationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Define a relação de muitos para muitos entre Agência e Funcionário
-        modelBuilder.Entity<AgencyEmployee>()
-            .HasOne(oa => oa.Agency)
-            .WithMany(o => o.AgencyEmployees)
-            .HasForeignKey(oa => oa.AgencyId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<AgencyEmployee>()
-            .HasOne(oa => oa.Employee)
-            .WithMany(o => o.AgencyEmployees)
-            .HasForeignKey(oa => oa.EmployeeId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // Define a relação de um para muitos entre Conta e Cliente
-        modelBuilder.Entity<Account>()
-            .HasOne(a => a.SecundaryClient)
-            .WithMany()
-            .HasForeignKey(a => a.SecundaryClientId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<Account>()
-            .HasOne(a => a.MainClient)
-            .WithMany()
-            .HasForeignKey(a => a.MainClientId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         // Define chaves compostas
         modelBuilder.Entity<OperationAccount>().HasKey(ac => new { ac.AccountId, ac.OperationId });
-        modelBuilder.Entity<AgencyEmployee>().HasKey(ac => new { ac.AgencyId, ac.EmployeeId });
     }
 
     public DbSet<Account> Account { get; set; } = default!;

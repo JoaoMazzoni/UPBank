@@ -1,6 +1,7 @@
 using AccountAPI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AccountsApiContext>(options =>
@@ -10,8 +11,10 @@ builder.Services.AddDbContext<AccountsApiContext>(options =>
 // Add services to the container.
 
 builder.Services.AddControllers();
-
 builder.Services.AddSingleton<AccountService>();
+builder.Services.AddSingleton<StatementService>();
+builder.Services.AddSingleton<OperationService>();
+builder.Services.AddSingleton<BalanceService>();
 
 var app = builder.Build();
 
