@@ -11,6 +11,7 @@ namespace Models;
 public class Account
 {
     [Key] public string Number { get; set; }
+    public string SavingsAccountNumber { get; set; }
     public string AgencyNumber { get; set; }
     public string MainClientId { get; set; }
     public string? SecondaryClientId { get; set; }
