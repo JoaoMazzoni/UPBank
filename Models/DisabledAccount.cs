@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Models;
 
-public class Account
+public class DisabledAccount
 {
     [Key] public string Number { get; set; }
     public string SavingsAccountNumber { get; set; }
@@ -18,9 +12,7 @@ public class Account
     public bool Restriction { get; set; }
     public CreditCard? CreditCard { get; set; }
     public double SpecialLimit { get; set; }
-    public List<Operation> Statement { get; set; }
     public AccountProfile Profile { get; set; }
     public DateTime Date { get; set; }
     public double Balance { get; set; }
-    public ICollection<OperationAccount> OperationAccounts { get; set; }
 }
