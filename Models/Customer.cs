@@ -10,6 +10,7 @@ namespace Models
     public class Customer : Person
     {
         public bool Restriction { get; set; }
+        public bool AccountRequest { get; set; }
 
         public Customer()
         {
@@ -18,6 +19,7 @@ namespace Models
         public Customer(CustomerDTO customerDTO) : base(customerDTO)
         {
             Restriction = customerDTO.Restriction;
+            AccountRequest = customerDTO.AccountRequest;
         }
 
     }
