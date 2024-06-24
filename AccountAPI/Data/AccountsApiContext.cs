@@ -38,4 +38,6 @@ public class AccountsApiContext : DbContext
     }
 
     public DbSet<Account> Account { get; set; } = default!;
+    public DbSet<Operation> Operation { get; set; } = default!;
+    public DbSet<OperationAccount> OperationAccount { get; set; } = default!;
 }

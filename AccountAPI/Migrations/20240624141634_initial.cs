@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AccountAPI.Migrations
 {
-    public partial class Initial : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -32,6 +32,7 @@ namespace AccountAPI.Migrations
                 columns: table => new
                 {
                     Number = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SavingsAccountNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AgencyNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MainClientId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SecondaryClientId = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -59,6 +60,7 @@ namespace AccountAPI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
                     AccountNumber = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Value = table.Column<double>(type: "float", nullable: false)
                 },

@@ -23,7 +23,7 @@ public class AccountsController : ControllerBase
         _context = context;
         _accountService = accountService;
     }
-
+    
     // GET: api/Accounts
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Account>>> GetAccount()
@@ -96,7 +96,7 @@ public class AccountsController : ControllerBase
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
         }
 
-        var account = _accountService.PopulateAccountData(accountDto);
+        var account = await _accountService.PopulateAccountData(accountDto);
         //account.CreditCard = await _accountService.GenerateCreditCard(account.Profile, account.MainClientId);
         _context.Account.Add(account);
 
@@ -115,10 +115,8 @@ public class AccountsController : ControllerBase
                 throw;
             }
         }
-
         return CreatedAtAction("GetAccount", new { id = accountDto.Number }, accountDto);
     }
-
     // DELETE: api/Accounts/5
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAccount(string id)

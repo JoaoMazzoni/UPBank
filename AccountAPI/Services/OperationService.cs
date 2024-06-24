@@ -1,5 +1,6 @@
 ﻿using Models;
 using Models.DTO;
+using SQLitePCL;
 
 namespace AccountAPI.Services;
 
@@ -9,8 +10,12 @@ public class OperationService
     {
         Operation operation = new()
         {
-            Id = operationDTO.Id,
+            Id = 0,
             Date = DateTime.Now,
+            Account = new ()
+            {
+                Number = operationDTO.AccountNumber
+            },
             Type = operationDTO.Type,
             Value = operationDTO.Value
         };

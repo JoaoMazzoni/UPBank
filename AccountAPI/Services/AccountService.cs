@@ -11,7 +11,7 @@ public class AccountService
     private string _agencyBaseUri = "https://localhost:7196/api";
     private string _clientBaseUri = "https://localhost:7045/api";
 
-    public Account PopulateAccountData(AccountDTO dto)
+    public async Task<Account> PopulateAccountData(AccountDTO dto)
     {
         return new Account
         {
@@ -21,13 +21,36 @@ public class AccountService
             MainClientId = dto.MainClientId,
             SecondaryClientId = dto.SecondaryClientId,
             Restriction = dto.Restriction,
+            //CreditCard = await GenerateCreditCard(await SetProfile(dto.MainClientId), dto.MainClientId),
             SpecialLimit = dto.SpecialLimit,
             Date = dto.Date,
             Balance = dto.Balance,
-            Profile = dto.Profile
+            //Profile = await SetProfile(dto.MainClientId),
         };
     }
-
+    public async Task<Models.AccountProfile> SetProfile(string clientCpf)
+    {
+        Client client = new();
+        AccountProfile profile;
+        try
+        {
+            var clientResponse = await _http.GetAsync($"{_clientBaseUri}/{clientCpf}");
+            client = JsonConvert.DeserializeObject<Client>(clientResponse.Content.ToJson());
+       
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        profile = client.Salary switch
+        {
+            <= 2000 => AccountProfile.Academic,
+            > 2000 and <= 5000 => AccountProfile.Normal,
+            > 5000 => AccountProfile.Premium
+        };
+        return profile;
+    }
     public async Task<CreditCard?> GenerateCreditCard(AccountProfile clientProfile, string clientCpf)
     {
         Client? client = new();

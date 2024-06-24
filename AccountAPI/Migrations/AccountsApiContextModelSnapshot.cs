@@ -49,6 +49,10 @@ namespace AccountAPI.Migrations
                     b.Property<bool>("Restriction")
                         .HasColumnType("bit");
 
+                    b.Property<string>("SavingsAccount")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SavingsAccountNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -113,6 +117,9 @@ namespace AccountAPI.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.Property<double>("Value")
                         .HasColumnType("float");

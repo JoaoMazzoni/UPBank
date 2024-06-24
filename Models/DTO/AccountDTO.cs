@@ -13,7 +13,6 @@ public class AccountDTO
     public string? SecondaryClientId { get; set; }
     public bool Restriction { get; set; }
     public double SpecialLimit { get; set; }
-    public AccountProfile Profile { get; set; }
     public DateTime Date { get; set; }
     public double Balance { get; set; }
 
