@@ -35,9 +35,10 @@ namespace EmployeeAPI
         public async Task<T> Post(string endpoint, dynamic obj)
         {
             string json = JsonConvert.SerializeObject(obj);
+
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = _httpClient.PostAsJsonAsync(_baseUrl + endpoint, content).Result;
+            var response = await _httpClient.PostAsync(_baseUrl + endpoint, content);
             response.EnsureSuccessStatusCode();
 
             string strResponse = response.Content.ReadAsStringAsync().Result;
