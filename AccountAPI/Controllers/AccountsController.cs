@@ -98,7 +98,7 @@ public class AccountsController : ControllerBase
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
         }
 
-        var account = _accountService.PopulateAccountData(accountDto);
+        var account = await _accountService.PopulateAccountData(accountDto);
         account.CreditCard = await _accountService.GenerateCreditCard(account.Profile, account.MainCustomerId);
         _context.Account.Add(account);
 

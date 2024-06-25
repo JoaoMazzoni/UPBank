@@ -98,16 +98,14 @@ public class AccountService
 
         return true;
     }
-
-    public async Task<CreditCard?> GenerateCreditCard(AccountProfile customerProfile, string customerCpf)
     public async Task<Models.AccountProfile> SetProfile(string clientCpf)
     {
-        Client client = new();
+        Customer client = new();
         AccountProfile profile;
         try
         {
-            var clientResponse = await _http.GetAsync($"{_clientBaseUri}/{clientCpf}");
-            client = JsonConvert.DeserializeObject<Client>(clientResponse.Content.ToJson());
+            var clientResponse = await _http.GetAsync($"{_customerBaseUri}/{clientCpf}");
+            client = JsonConvert.DeserializeObject<Customer>(clientResponse.Content.ToJson());
        
         }
         catch (Exception e)
@@ -123,7 +121,7 @@ public class AccountService
         };
         return profile;
     }
-    public async Task<CreditCard?> GenerateCreditCard(AccountProfile clientProfile, string clientCpf)
+    public async Task<CreditCard?> GenerateCreditCard(AccountProfile customerProfile, string customerCpf)
     {
         Customer? customer = new();
         long cardNumber;
