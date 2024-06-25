@@ -91,6 +91,12 @@ namespace CustomerAPI.Controllers
 
             var address = await _addressService.GetAddressByAPI(customerDTO.AddressDTO.ZipCode + customerDTO.AddressDTO.Number);
 
+            document = FormatCPF(document);
+            customer.Email = customer.Email.ToLower();
+
+            var cpf = FormatCPF(customerDTO.Document);
+            customer.Document = cpf;
+
             if (address == null)
             {
                 Address add = await _addressService.PostAddress(customerDTO.AddressDTO);
