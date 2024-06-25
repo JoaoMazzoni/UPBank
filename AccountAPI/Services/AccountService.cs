@@ -1,4 +1,5 @@
-﻿using Models;
+﻿using System.Net;
+using Models;
 using Models.DTO;
 using Newtonsoft.Json;
 using NuGet.Protocol;
@@ -23,7 +24,7 @@ public class AccountService
             Restriction = dto.Restriction,
             SpecialLimit = dto.SpecialLimit,
             Date = dto.Date,
-            Balance = dto.Balance,
+            Balance = dto.Balance
         };
     }
 
@@ -81,6 +82,11 @@ public class AccountService
         try
         {
             var employeeResponse = await _http.GetAsync($"{_employeeBaseUri}/{managerId}");
+            if (employeeResponse.StatusCode != HttpStatusCode.OK)
+            {
+                return false;
+            }
+
             employee = JsonConvert.DeserializeObject<Employee>(await employeeResponse.Content.ReadAsStringAsync());
 
             if (employee is not { Manager: true })
@@ -96,7 +102,8 @@ public class AccountService
 
         return true;
     }
-    public async Task<Models.AccountProfile> SetProfile(string clientCpf)
+
+    public async Task<AccountProfile> SetProfile(string clientCpf)
     {
         Customer client = new();
         AccountProfile profile;
@@ -104,13 +111,13 @@ public class AccountService
         {
             var clientResponse = await _http.GetAsync($"{_customerBaseUri}/{clientCpf}");
             client = JsonConvert.DeserializeObject<Customer>(clientResponse.Content.ToJson());
-       
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
             throw;
         }
+
         profile = client.Salary switch
         {
             <= 2000 => AccountProfile.Academic,
@@ -119,12 +126,18 @@ public class AccountService
         };
         return profile;
     }
+
     public async Task<Customer?> GetCustomerData(string customerCpf)
     {
-        Customer? customer = new();
+        Customer? customer;
         try
         {
             var customerResponse = await _http.GetAsync($"{_customerBaseUri}/{customerCpf}");
+            if (customerResponse.StatusCode != HttpStatusCode.OK)
+            {
+                return null;
+            }
+
             customer = JsonConvert.DeserializeObject<Customer>(await customerResponse.Content.ReadAsStringAsync());
         }
         catch (Exception e)
