@@ -10,6 +10,7 @@ using Models;
 using Models.DTO;
 using Models.Utils;
 using Models.CopyClasses;
+using System.Data;
 
 namespace EmployeeAPI.Controllers
 {
@@ -125,6 +126,12 @@ namespace EmployeeAPI.Controllers
                 return BadRequest();
             }
 
+            var e = await _context.Employee.FindAsync(document);
+
+            if (e != null && e.Register != employee.Register)
+            {
+                return BadRequest("It is not possible to change the registration number");
+            }
             _context.Entry(employee).State = EntityState.Modified;
 
             try
