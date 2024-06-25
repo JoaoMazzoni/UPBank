@@ -46,6 +46,21 @@ namespace AgencyAPI.Services
                 return null;
         }
 
+        public async Task<Employee> GetEmployeeOnAgency(string cpf)
+        {
+            var response = await _client.GetAsync($"https://localhost:7196/api/Employees/{cpf}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var employee = await response.Content.ReadFromJsonAsync<Employee>();
+                employee.Address = await _addressService.GetAddress(employee.AddressId);
+                return employee;
+            }
+            else
+                return null;
+        }
+
+
         public async Task<Employee> PostEmployee(Employee employee)
         {
             try

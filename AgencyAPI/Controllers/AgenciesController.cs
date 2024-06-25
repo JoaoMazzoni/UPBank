@@ -40,10 +40,12 @@ namespace AgencyAPI.Controllers
             foreach (var employee in agencyDTO.Employees)
             {
                 if (employee == null)
-                    return BadRequest("Employee not found.");
+                    return BadRequest("Funcionario não foi achado.");
                 else
                 {
-                    employees.Add(await _employeeService.GetEmployee(employee));
+                    var ifEmployeeExistInAgencies = await _employeeService.GetEmployeeOnAgency(employee);
+                    if (ifEmployeeExistInAgencies == null)
+                        employees.Add(await _employeeService.GetEmployee(employee));
                 }
             }
 
@@ -370,6 +372,6 @@ namespace AgencyAPI.Controllers
         {
             return await _accountService.GetActiveLoan();
         }
-        
+
     }
 }
