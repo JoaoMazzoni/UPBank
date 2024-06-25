@@ -239,8 +239,8 @@ namespace EmployeeAPI.Controllers
                 }
                 if (employee.Manager)
                 {
-                    var accountApi = new ApiConsumer<Account>("https://localhost:7045/api/Customers/");
-                    var accountCreated = await accountApi.Post(null, accountDTO);
+                    var accountApi = new ApiConsumer<Account>("https://localhost:7285/api/Accounts");
+                    var accountCreated = await accountApi.Post("", accountDTO);
 
                     return accountCreated;
                 }
