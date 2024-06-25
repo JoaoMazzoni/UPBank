@@ -226,6 +226,33 @@ namespace EmployeeAPI.Controllers
             }
         }
 
+        [HttpPost("{manager}/create/account")]
+        public async Task<ActionResult<Account>> AcceptAccountRequest(string manager, AccountDTO accountDTO)
+        {
+            try
+            {
+                var employee = await _context.Employee.FindAsync(manager);
+
+                if (employee == null)
+                {
+                    return NotFound("not was possible to find this employee, Document: " + manager);
+                }
+                if (employee.Manager)
+                {
+                    var accountApi = new ApiConsumer<Account>("https://localhost:7045/api/Customers/");
+                    var accountCreated = await accountApi.Post(null, accountDTO);
+
+                    return accountCreated;
+                }
+                else
+                    return Problem("This employee not is a manager");
+            }
+            catch (Exception ex)
+            {
+                return NoContent();
+            }
+        }
+
         private bool EmployeeExists(string document)
         {
             return (_context.Employee?.Any(e => e.Document == document)).GetValueOrDefault();
