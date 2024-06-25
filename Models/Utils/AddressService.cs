@@ -16,6 +16,7 @@ namespace Models.Utils
         {
             try
             {
+                id = id.Replace("-", "");
                 var response = await _httpClient.GetAsync($"https://localhost:7238/api/Addresses/{id}");
                 if (response.IsSuccessStatusCode)
                 {
@@ -54,7 +55,7 @@ namespace Models.Utils
             string addressReturn = await respose.Content.ReadAsStringAsync();
             JsonSerializerSettings settings = new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() };
             var address = JsonConvert.DeserializeObject<Address>(addressReturn, settings);
-
+            
             return address;
         }
 

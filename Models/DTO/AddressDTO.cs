@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,15 @@ namespace Models.DTO
 {
     public class AddressDTO
     {
-        public string ZipCode { get; set; }
-        public int Number { get; set; }
+        [BsonId]
+        public static string Id;
         public string Complement { get; set; }
+        public int Number { get; set; }
+        public string ZipCode { get; set; }
+
+        public static string CreateId (int number, string zipCode)
+        {
+           return Id = zipCode + number;
+        }
     }
 }
