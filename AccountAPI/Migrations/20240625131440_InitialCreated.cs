@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AccountAPI.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreated : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,8 +13,7 @@ namespace AccountAPI.Migrations
                 name: "CreditCard",
                 columns: table => new
                 {
-                    Number = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Number = table.Column<long>(type: "bigint", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Limit = table.Column<double>(type: "float", nullable: false),
                     SecurityCode = table.Column<string>(type: "nvarchar(max)", nullable: false),

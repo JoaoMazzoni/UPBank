@@ -32,9 +32,10 @@ namespace AgencyAPI.Controllers
             List<Employee> employees = new();
 
             if (_context.Agency == null)
-            {
                 return Problem("Entity set 'AgencyAPIContext.Agency'  is null.");
-            }
+
+            if (!Agency.VerifyCNPJ(agencyDTO.CNPJ))
+                return BadRequest("CNPJ inválido!");
 
             foreach (var employee in agencyDTO.Employees)
             {
@@ -359,7 +360,6 @@ namespace AgencyAPI.Controllers
         {
             return await _accountService.GetAccountsPerProfile(profile);
         }
-
 
 
 

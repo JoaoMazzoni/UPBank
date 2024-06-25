@@ -44,8 +44,9 @@ namespace AgencyAPI.Services
                 var accounts = await response.Content.ReadFromJsonAsync<List<Account>>();
                 if (accounts != null)
                 {
-                    var accountsPerProfile = accounts.Where(a => a.Profile.Equals(profile)).ToList();
-                    if (accountsPerProfile.Any())
+                    var accountsPerProfile = accounts.Where(a => a.Profile.ToString().Equals(profile)).ToList();
+                    //(profile)).ToList();
+                    if (accountsPerProfile.Count != 0)
                     {
                         return accountsPerProfile;
                     }
