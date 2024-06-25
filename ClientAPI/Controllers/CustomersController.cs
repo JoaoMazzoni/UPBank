@@ -97,8 +97,15 @@ namespace CustomerAPI.Controllers
             var cpf = FormatCPF(customerDTO.Document);
             customer.Document = cpf;
 
+            customer.AddressId = customer.AddressId.Replace("-", "");
+
             if (address == null)
             {
+                if (customerDTO.AddressDTO.Number <= 0)
+                {
+                    return BadRequest("Número de endereço inválido.");
+                }
+
                 Address add = await _addressService.PostAddress(customerDTO.AddressDTO);
                 customer.Address = add;
             }
@@ -118,7 +125,10 @@ namespace CustomerAPI.Controllers
             {
                 return NotFound("Cliente não encontrado.");
             }
-
+            if (customer.Address.Id == null)
+            {
+                return BadRequest("Endereço inválido.");
+            }
             try
             {
                 if (existingCustomer.Restriction)
@@ -166,6 +176,7 @@ namespace CustomerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<AccountRequest>> PostCustomer(AccountRequestDTO customerDTO)
         {
+            
             var customer = new AccountRequest(customerDTO);
 
             var address = await _addressService.GetAddressByAPI(customerDTO.AddressDTO.ZipCode + customerDTO.AddressDTO.Number);
@@ -180,14 +191,24 @@ namespace CustomerAPI.Controllers
             var cpf = FormatCPF(customerDTO.Document);
             customer.Document = cpf;
 
+            customer.AddressId = customer.AddressId.Replace("-", "");
+
+
             if (address == null)
             {
+                if (customerDTO.AddressDTO.Number <= 0)
+                {
+                    return BadRequest("Número de endereço inválido.");
+                }
+
                 Address add = await _addressService.PostAddress(customerDTO.AddressDTO);
                 customer.Address = add;
+   
             }
             else
             {
                 customer.Address = address;
+                
             }
 
             if (_context.Customer == null)
@@ -213,7 +234,7 @@ namespace CustomerAPI.Controllers
                 await _context.SaveChangesAsync();
                 return Ok("O cliente estava removido e foi recuperado para solicitar uma nova conta.");
             }
-
+          
             if(customer.Address.Id == null)
             {
                 return BadRequest("Endereço inválido.");
@@ -222,8 +243,6 @@ namespace CustomerAPI.Controllers
             {
                 _context.AccountRequest.Add(customer);
             }
-
-           
 
             try
             {

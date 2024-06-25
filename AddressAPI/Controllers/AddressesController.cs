@@ -62,13 +62,15 @@ namespace AddressAPI.Controllers
                     add.Complement = address.Complement;
                     add.Number = address.Number;
                     add.Id = $"{address.ZipCode}{add.Number}";
+                    add.Id = add.Id.Replace("-", "");
+                   
 
                     if(add.City == null || add.State == null || add.Street == null)
                     {
                         return Problem("CEP Inválido. Erro ao obter endereço do serviço ViaCEP");
                     }
-
-                    var result = _addressService.Post(add);
+                   
+                     _addressService.Post(add);
 
                     return add;
                 }
