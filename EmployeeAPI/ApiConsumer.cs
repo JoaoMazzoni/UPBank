@@ -1,4 +1,5 @@
-﻿using Models.Utils;
+﻿using Microsoft.AspNetCore.Mvc;
+using Models.Utils;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -31,29 +32,37 @@ namespace EmployeeAPI
             return objectReturn;
         }
 
-        public async Task<T> Post(string endpoint, T obj)
+        public async Task<T> Post(string endpoint, dynamic obj)
         {
             string json = JsonConvert.SerializeObject(obj);
+
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = _httpClient.PostAsJsonAsync(_baseUrl + endpoint, content).Result;
+            var response = await _httpClient.PostAsync(_baseUrl + endpoint, content);
             response.EnsureSuccessStatusCode();
 
             string strResponse = response.Content.ReadAsStringAsync().Result;
 
-            T objReturn = JsonConvert.DeserializeObject<T>(strResponse);
+            dynamic objReturn = JsonConvert.DeserializeObject<T>(strResponse);
             return objReturn;
         }
-        public async Task <T> Patch(string endpoint)
+        public async Task<ActionResult<T>?> Patch(string endpoint)
         {
-            var response = _httpClient.PatchAsync(_baseUrl + endpoint, null).Result;
+            try
+            {
+                var response = await _httpClient.PatchAsync(_baseUrl + endpoint, null);
 
-            string strResponse = response.Content.ReadAsStringAsync().Result;
-            response.EnsureSuccessStatusCode();
+                var strResponse = await response.Content.ReadAsStringAsync();
+                response.EnsureSuccessStatusCode();
 
-            T objReturn = JsonConvert.DeserializeObject<T>(strResponse);
+                ActionResult<T>? objReturn = JsonConvert.DeserializeObject<ActionResult<T>>(strResponse);
 
-            return objReturn;
+                return objReturn;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
     }
 }
