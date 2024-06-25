@@ -8,8 +8,8 @@ namespace AccountAPI.Services;
 public class AccountService
 {
     private HttpClient _http = new();
-    private string _agencyBaseUri = "https://localhost:7196/api";
-    private string _clientBaseUri = "https://localhost:7045/api";
+    private readonly string _customerBaseUri = "https://localhost:7045/api";
+    private readonly string _employeeBaseUri = "https://localhost:7040/api";
 
     public async Task<Account> PopulateAccountData(AccountDTO dto)
     {
@@ -18,8 +18,8 @@ public class AccountService
             Number = dto.Number,
             AgencyNumber = dto.AgencyNumber,
             SavingsAccountNumber = dto.SavingsAccountNumber,
-            MainClientId = dto.MainClientId,
-            SecondaryClientId = dto.SecondaryClientId,
+            MainCustomerId = dto.MainCustomerId,
+            SecondaryCustomerId = dto.SecondaryCustomerId,
             Restriction = dto.Restriction,
             //CreditCard = await GenerateCreditCard(await SetProfile(dto.MainClientId), dto.MainClientId),
             SpecialLimit = dto.SpecialLimit,
@@ -28,6 +28,78 @@ public class AccountService
             //Profile = await SetProfile(dto.MainClientId),
         };
     }
+
+    public DisabledAccount DisableAccountFeatures(Account account)
+    {
+        account.Restriction = true;
+        if (account.CreditCard != null)
+        {
+            account.CreditCard.Active = false;
+        }
+
+        return new DisabledAccount
+        {
+            Number = account.Number,
+            AgencyNumber = account.AgencyNumber,
+            SavingsAccountNumber = account.SavingsAccountNumber,
+            MainCustomerId = account.MainCustomerId,
+            SecondaryCustomerId = account.SecondaryCustomerId,
+            CreditCard = account.CreditCard,
+            Restriction = account.Restriction,
+            SpecialLimit = account.SpecialLimit,
+            Date = account.Date,
+            Balance = account.Balance,
+            Profile = account.Profile
+        };
+    }
+
+    public Account EnableAccountFeatures(DisabledAccount disabledAccount)
+    {
+        disabledAccount.Restriction = false;
+        if (disabledAccount.CreditCard != null)
+        {
+            disabledAccount.CreditCard.Active = false;
+        }
+
+        return new Account
+        {
+            Number = disabledAccount.Number,
+            AgencyNumber = disabledAccount.AgencyNumber,
+            SavingsAccountNumber = disabledAccount.SavingsAccountNumber,
+            MainCustomerId = disabledAccount.MainCustomerId,
+            SecondaryCustomerId = disabledAccount.SecondaryCustomerId,
+            CreditCard = disabledAccount.CreditCard,
+            Restriction = disabledAccount.Restriction,
+            SpecialLimit = disabledAccount.SpecialLimit,
+            Date = disabledAccount.Date,
+            Balance = disabledAccount.Balance,
+            Profile = disabledAccount.Profile
+        };
+    }
+
+    public async Task<bool> ValidateManagerRequest(string managerId)
+    {
+        Employee? employee;
+        try
+        {
+            var employeeResponse = await _http.GetAsync($"{_employeeBaseUri}/{managerId}");
+            employee = JsonConvert.DeserializeObject<Employee>(employeeResponse.Content.ToJson());
+
+            if (employee is not { Manager: true })
+            {
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
+        return true;
+    }
+
+    public async Task<CreditCard?> GenerateCreditCard(AccountProfile customerProfile, string customerCpf)
     public async Task<Models.AccountProfile> SetProfile(string clientCpf)
     {
         Client client = new();
@@ -53,16 +125,16 @@ public class AccountService
     }
     public async Task<CreditCard?> GenerateCreditCard(AccountProfile clientProfile, string clientCpf)
     {
-        Client? client = new();
+        Customer? customer = new();
         long cardNumber;
         double cardLimit;
         DateTime expirationDate;
         CreditCardFlags cardFlag;
         try
         {
-            var clientResponse = await _http.GetAsync($"{_clientBaseUri}/{clientCpf}");
-            client = JsonConvert.DeserializeObject<Client>(clientResponse.Content.ToJson());
-            if (client == null)
+            var customerResponse = await _http.GetAsync($"{_customerBaseUri}/{customerCpf}");
+            customer = JsonConvert.DeserializeObject<Customer>(customerResponse.Content.ToJson());
+            if (customer == null)
             {
                 return null;
             }
@@ -73,9 +145,9 @@ public class AccountService
             throw;
         }
 
-        var ownerName = client.Name;
+        var ownerName = customer.Name;
         var cardSecurityCode = $"{new Random().Next(1, 999)}".PadLeft(3, '0');
-        switch (clientProfile)
+        switch (customerProfile)
         {
             case AccountProfile.Academic:
                 cardNumber = new Random().NextInt64(3000000000000000, 9999999999999999);

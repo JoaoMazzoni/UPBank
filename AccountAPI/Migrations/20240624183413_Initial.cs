@@ -34,8 +34,8 @@ namespace AccountAPI.Migrations
                     Number = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SavingsAccountNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AgencyNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MainClientId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SecondaryClientId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MainCustomerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SecondaryCustomerId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Restriction = table.Column<bool>(type: "bit", nullable: false),
                     CreditCardNumber = table.Column<long>(type: "bigint", nullable: true),
                     SpecialLimit = table.Column<double>(type: "float", nullable: false),
@@ -48,6 +48,32 @@ namespace AccountAPI.Migrations
                     table.PrimaryKey("PK_Account", x => x.Number);
                     table.ForeignKey(
                         name: "FK_Account_CreditCard_CreditCardNumber",
+                        column: x => x.CreditCardNumber,
+                        principalTable: "CreditCard",
+                        principalColumn: "Number");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DisabledAccount",
+                columns: table => new
+                {
+                    Number = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SavingsAccountNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AgencyNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MainCustomerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SecondaryCustomerId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Restriction = table.Column<bool>(type: "bit", nullable: false),
+                    CreditCardNumber = table.Column<long>(type: "bigint", nullable: true),
+                    SpecialLimit = table.Column<double>(type: "float", nullable: false),
+                    Profile = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Balance = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DisabledAccount", x => x.Number);
+                    table.ForeignKey(
+                        name: "FK_DisabledAccount_CreditCard_CreditCardNumber",
                         column: x => x.CreditCardNumber,
                         principalTable: "CreditCard",
                         principalColumn: "Number");
@@ -104,6 +130,11 @@ namespace AccountAPI.Migrations
                 column: "CreditCardNumber");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DisabledAccount_CreditCardNumber",
+                table: "DisabledAccount",
+                column: "CreditCardNumber");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Operation_AccountNumber",
                 table: "Operation",
                 column: "AccountNumber");
@@ -116,6 +147,9 @@ namespace AccountAPI.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "DisabledAccount");
+
             migrationBuilder.DropTable(
                 name: "OperationAccount");
 

@@ -15,6 +15,9 @@ public class AccountsApiContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        // Configura as tabelas da Account
+        modelBuilder.Entity<DisabledAccount>()
+            .ToTable("DisabledAccount");
 
         // Configura chave primária sem incremento automático
         modelBuilder.Entity<CreditCard>()
@@ -38,6 +41,7 @@ public class AccountsApiContext : DbContext
     }
 
     public DbSet<Account> Account { get; set; } = default!;
+    public DbSet<DisabledAccount> DisabledAccount { get; set; } = default!;
     public DbSet<Operation> Operation { get; set; } = default!;
     public DbSet<OperationAccount> OperationAccount { get; set; } = default!;
 }

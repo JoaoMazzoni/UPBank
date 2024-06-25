@@ -39,7 +39,7 @@ namespace AccountAPI.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MainClientId")
+                    b.Property<string>("MainCustomerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -57,7 +57,7 @@ namespace AccountAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SecondaryClientId")
+                    b.Property<string>("SecondaryCustomerId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("SpecialLimit")
@@ -102,6 +102,51 @@ namespace AccountAPI.Migrations
                     b.HasKey("Number");
 
                     b.ToTable("CreditCard");
+                });
+
+            modelBuilder.Entity("Models.DisabledAccount", b =>
+                {
+                    b.Property<string>("Number")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AgencyNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Balance")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("CreditCardNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MainCustomerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Profile")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Restriction")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SavingsAccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SecondaryCustomerId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("SpecialLimit")
+                        .HasColumnType("float");
+
+                    b.HasKey("Number");
+
+                    b.HasIndex("CreditCardNumber");
+
+                    b.ToTable("DisabledAccount", (string)null);
                 });
 
             modelBuilder.Entity("Models.Operation", b =>
@@ -149,6 +194,15 @@ namespace AccountAPI.Migrations
                 });
 
             modelBuilder.Entity("Models.Account", b =>
+                {
+                    b.HasOne("Models.CreditCard", "CreditCard")
+                        .WithMany()
+                        .HasForeignKey("CreditCardNumber");
+
+                    b.Navigation("CreditCard");
+                });
+
+            modelBuilder.Entity("Models.DisabledAccount", b =>
                 {
                     b.HasOne("Models.CreditCard", "CreditCard")
                         .WithMany()

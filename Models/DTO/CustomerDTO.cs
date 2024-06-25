@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models;
-
-public class Client : Person
+namespace Models.DTO
 {
-    public bool Restriction { get; set; }
+    public class CustomerDTO : PersonDTO
+    {
+        public bool Restriction { get; set; }
+    }
 }

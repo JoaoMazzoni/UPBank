@@ -10,4 +10,10 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
     </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.29" />
+    <PackageReference Include="MongoDB.Bson" Version="2.26.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
 </Project>

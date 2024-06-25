@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountAPI.Migrations
 {
     [DbContext(typeof(AccountsApiContext))]
-    [Migration("20240624141634_initial")]
-    partial class initial
+    [Migration("20240624140219_v3")]
+    partial class v3
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -50,10 +50,6 @@ namespace AccountAPI.Migrations
 
                     b.Property<bool>("Restriction")
                         .HasColumnType("bit");
-
-                    b.Property<string>("SavingsAccount")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SavingsAccountNumber")
                         .IsRequired()
@@ -119,9 +115,6 @@ namespace AccountAPI.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
 
                     b.Property<double>("Value")
                         .HasColumnType("float");

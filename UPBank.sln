@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{166BA013-2A5E-43F8-9D7F-6A6DDE895BEA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{166BA013-2A5E-43F8-9D7F-6A6DDE895BEA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientAPI", "ClientAPI\ClientAPI.csproj", "{F1C1DD55-3B03-4182-A815-616F62F40C33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomerAPI", "ClientAPI\CustomerAPI.csproj", "{F1C1DD55-3B03-4182-A815-616F62F40C33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddressAPI", "AddressAPI\AddressAPI.csproj", "{C83C9B20-5738-4D96-9D13-ABCBEDEFDD92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AddressAPI", "AddressAPI\AddressAPI.csproj", "{C83C9B20-5738-4D96-9D13-ABCBEDEFDD92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmployeeAPI", "EmployeeAPI\EmployeeAPI.csproj", "{2006A53C-9677-44F3-9D90-9D5F1EE81739}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmployeeAPI", "EmployeeAPI\EmployeeAPI.csproj", "{2006A53C-9677-44F3-9D90-9D5F1EE81739}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountAPI", "AccountAPI\AccountAPI.csproj", "{7281D4BC-6CE3-460B-93C8-989E9B10BED5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccountAPI", "AccountAPI\AccountAPI.csproj", "{7281D4BC-6CE3-460B-93C8-989E9B10BED5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgencyAPI", "AgencyAPI\AgencyAPI.csproj", "{C8062DC7-CF76-47C4-92AD-BD2FD5855E94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgencyAPI", "AgencyAPI\AgencyAPI.csproj", "{C8062DC7-CF76-47C4-92AD-BD2FD5855E94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
