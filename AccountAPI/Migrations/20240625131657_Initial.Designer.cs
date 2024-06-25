@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountAPI.Migrations
 {
     [DbContext(typeof(AccountsApiContext))]
-    [Migration("20240624183413_Initial")]
+    [Migration("20240625131657_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -71,10 +71,7 @@ namespace AccountAPI.Migrations
             modelBuilder.Entity("Models.CreditCard", b =>
                 {
                     b.Property<long>("Number")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Number"), 1L, 1);
 
                     b.Property<bool>("Active")
                         .HasColumnType("bit");

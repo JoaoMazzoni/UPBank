@@ -98,27 +98,29 @@ public class AccountService
         return true;
     }
 
-    public async Task<CreditCard?> GenerateCreditCard(AccountProfile customerProfile, string customerCpf)
+    public async Task<Customer?> GetCostumerData(string customerCpf)
     {
         Customer? customer = new();
-        long cardNumber;
-        double cardLimit;
-        DateTime expirationDate;
-        CreditCardFlags cardFlag;
         try
         {
             var customerResponse = await _http.GetAsync($"{_customerBaseUri}/{customerCpf}");
             customer = JsonConvert.DeserializeObject<Customer>(customerResponse.Content.ToJson());
-            if (customer == null)
-            {
-                return null;
-            }
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            Console.WriteLine(e.Message);
             throw;
         }
+
+        return customer;
+    }
+
+    public CreditCard? GenerateCreditCard(AccountProfile customerProfile, Customer customer)
+    {
+        long cardNumber;
+        double cardLimit;
+        DateTime expirationDate;
+        CreditCardFlags cardFlag;
 
         var ownerName = customer.Name;
         var cardSecurityCode = $"{new Random().Next(1, 999)}".PadLeft(3, '0');

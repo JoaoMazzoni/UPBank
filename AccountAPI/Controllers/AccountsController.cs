@@ -99,7 +99,18 @@ public class AccountsController : ControllerBase
         }
 
         var account = _accountService.PopulateAccountData(accountDto);
-        account.CreditCard = await _accountService.GenerateCreditCard(account.Profile, account.MainCustomerId);
+        var customer = await _accountService.GetCostumerData(account.MainCustomerId);
+        if (customer == null)
+        {
+            return BadRequest("Customer not found.");
+        }
+
+        account.CreditCard = _accountService.GenerateCreditCard(account.Profile, customer);
+        if (account.CreditCard == null)
+        {
+            return BadRequest("Invalid information retrieved from '/api/Customer'");
+        }
+
         _context.Account.Add(account);
 
         try
