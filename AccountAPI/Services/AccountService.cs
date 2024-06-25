@@ -104,7 +104,6 @@ public class AccountService
         {
             var clientResponse = await _http.GetAsync($"{_customerBaseUri}/{clientCpf}");
             client = JsonConvert.DeserializeObject<Customer>(clientResponse.Content.ToJson());
-       
         }
         catch (Exception e)
         {

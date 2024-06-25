@@ -85,15 +85,15 @@ public class OperationsController : ControllerBase
         }
         return operations;
     }
-   [HttpGet("number/{number}")]
-   public async Task<ActionResult<IEnumerable<OperationDTO>>> GetByNumber(string number)
+   [HttpGet("All/{AccountNumber}")]
+   public async Task<ActionResult<IEnumerable<OperationDTO>>> GetByNumber(string AccountNumber)
     {
         List<OperationDTO> operations = new List<OperationDTO>();
         if (_context.Operation == null)
         {
             return NotFound();
         }
-        var result = await _context.Operation.Include(a => a.Account).Where(n => n.Account.Number == number).ToListAsync();
+        var result = await _context.Operation.Include(a => a.Account).Where(n => n.Account.Number == AccountNumber).ToListAsync();
         foreach (Operation operation in result)
         {
             if (operation.Account == null)
@@ -112,22 +112,36 @@ public class OperationsController : ControllerBase
         return operations;
     }
     // POST: api/Operations
-    [HttpPost]
-    public async Task<ActionResult<OperationDTO>> PostOperation(OperationDTO dto)
+    [HttpPost("{OriginalAccount}")]
+    public async Task<ActionResult<OperationDTO>> PostOperation(string OriginalAccount, OperationDTO dto)
     {
+        //Falta verificar os valores e operações, se o valor da operação é condizente com a operação, > < == 0, se possui o valor para transferir etc, se possui restrição
+        Account account = await _context.Account.FindAsync(OriginalAccount);
+        if (account == null)
+        {
+            return BadRequest();
+        }
         Operation operation = _operationService.GenerateOperation(dto);
         operation.Account = await _context.Account.FindAsync(dto.AccountNumber);
+        if (operation.Account == null)
+        {
+            throw new ArgumentException("Conta de destino não encontrada");
+        }
         OperationAccount ac = new OperationAccount()
         {
-            AccountId = operation.Account.Number,
-            Account = operation.Account,
+            AccountId = OriginalAccount,
+            Account = account,
             OperationId = operation.Id,
             Operation = operation
      
         };
         if((int)dto.Type >= 5 || (int) dto.Type < 0)
         {
-            return Problem("Tipo de transação inválida");
+            throw new ArgumentException("Tipo de transação inválida");
+        }
+        if ((int)dto.Type == 3)
+        {
+            operation.Value *= -1;
         }
         if (operation == null)
         {
