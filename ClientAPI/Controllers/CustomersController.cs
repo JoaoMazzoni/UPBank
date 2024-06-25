@@ -31,6 +31,11 @@ namespace CustomerAPI.Controllers
 
             var accountRequest = await _context.AccountRequest.ToListAsync();
 
+            if (accountRequest.Count == 0)
+            {
+                return NotFound("Não há requisições de contas no momento.");
+            }
+
             foreach (var account in accountRequest)
             {
                 if (account.AddressId != null)
@@ -58,7 +63,7 @@ namespace CustomerAPI.Controllers
 
             if (accountRequest == null)
             {
-                return NotFound();
+                return NotFound("Nenhuma requisição de conta com este documento foi encontrada.");
             }
 
             if (accountRequest.AddressId != null)
