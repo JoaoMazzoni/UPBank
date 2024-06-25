@@ -8,8 +8,8 @@ namespace AccountAPI.Services;
 public class AccountService
 {
     private HttpClient _http = new();
-    private readonly string _customerBaseUri = "https://localhost:7045/api";
-    private readonly string _employeeBaseUri = "https://localhost:7040/api";
+    private readonly string _customerBaseUri = "https://localhost:7045/api/Customers";
+    private readonly string _employeeBaseUri = "https://localhost:7040/api/Employees";
 
     public Account PopulateAccountData(AccountDTO dto)
     {
@@ -82,7 +82,7 @@ public class AccountService
         try
         {
             var employeeResponse = await _http.GetAsync($"{_employeeBaseUri}/{managerId}");
-            employee = JsonConvert.DeserializeObject<Employee>(employeeResponse.Content.ToJson());
+            employee = JsonConvert.DeserializeObject<Employee>(await employeeResponse.Content.ReadAsStringAsync());
 
             if (employee is not { Manager: true })
             {
@@ -104,7 +104,7 @@ public class AccountService
         try
         {
             var customerResponse = await _http.GetAsync($"{_customerBaseUri}/{customerCpf}");
-            customer = JsonConvert.DeserializeObject<Customer>(customerResponse.Content.ToJson());
+            customer = JsonConvert.DeserializeObject<Customer>(await customerResponse.Content.ReadAsStringAsync());
         }
         catch (Exception e)
         {
