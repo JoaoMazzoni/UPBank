@@ -32,7 +32,7 @@ namespace EmployeeAPI
             return objectReturn;
         }
 
-        public async Task<T> Post(string endpoint, T obj)
+        public async Task<T> Post(string endpoint, dynamic obj)
         {
             string json = JsonConvert.SerializeObject(obj);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -42,7 +42,7 @@ namespace EmployeeAPI
 
             string strResponse = response.Content.ReadAsStringAsync().Result;
 
-            T objReturn = JsonConvert.DeserializeObject<T>(strResponse);
+            dynamic objReturn = JsonConvert.DeserializeObject<T>(strResponse);
             return objReturn;
         }
         public async Task<ActionResult<T>?> Patch(string endpoint)
