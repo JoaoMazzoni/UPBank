@@ -97,22 +97,18 @@ public class AccountsController : ControllerBase
         {
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
         }
-
-        var account = _accountService.PopulateAccountData(accountDto);
-        var customer = await _accountService.GetCostumerData(account.MainCustomerId);
+        var account = await _accountService.PopulateAccountData(accountDto);
+        var customer = await _accountService.GetCustomerData(account.MainCustomerId);
         if (customer == null)
         {
             return BadRequest("Customer not found.");
         }
-
-        account.CreditCard = _accountService.GenerateCreditCard(account.Profile, customer);
+        account.CreditCard = _accountService.GenerateCreditCard(await _accountService.SetProfile(account.MainCustomerId), customer);
         if (account.CreditCard == null)
         {
             return BadRequest("Invalid information retrieved from '/api/Customer'");
         }
-
         _context.Account.Add(account);
-
         try
         {
             await _context.SaveChangesAsync();
@@ -130,7 +126,6 @@ public class AccountsController : ControllerBase
         }
         return CreatedAtAction("GetAccount", new { id = accountDto.Number }, accountDto);
     }
-
     // POST: api/Accounts/Recover
     [HttpPost("Activate")]
     public async Task<ActionResult<AccountDTO>> ActivateAccount(ActivateAccountDTO activateAccountRequest)
@@ -161,7 +156,6 @@ public class AccountsController : ControllerBase
         {
             return BadRequest("Account already activated.");
         }
-
         account.Restriction = false;
         await _context.SaveChangesAsync();
 

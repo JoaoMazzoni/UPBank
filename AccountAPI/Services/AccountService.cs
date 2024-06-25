@@ -21,11 +21,9 @@ public class AccountService
             MainCustomerId = dto.MainCustomerId,
             SecondaryCustomerId = dto.SecondaryCustomerId,
             Restriction = dto.Restriction,
-            //CreditCard = await GenerateCreditCard(await SetProfile(dto.MainClientId), dto.MainClientId),
             SpecialLimit = dto.SpecialLimit,
             Date = dto.Date,
             Balance = dto.Balance,
-            //Profile = await SetProfile(dto.MainClientId),
         };
     }
 
@@ -121,7 +119,7 @@ public class AccountService
         };
         return profile;
     }
-    public async Task<CreditCard?> GenerateCreditCard(AccountProfile customerProfile, string customerCpf)
+    public async Task<Customer?> GetCustomerData(string customerCpf)
     {
         Customer? customer = new();
         try
