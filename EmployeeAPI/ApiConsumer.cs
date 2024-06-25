@@ -1,4 +1,5 @@
-﻿using Models.Utils;
+﻿using Microsoft.AspNetCore.Mvc;
+using Models.Utils;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -44,16 +45,23 @@ namespace EmployeeAPI
             T objReturn = JsonConvert.DeserializeObject<T>(strResponse);
             return objReturn;
         }
-        public async Task <T> Patch(string endpoint)
+        public async Task<ActionResult<T>?> Patch(string endpoint)
         {
-            var response = _httpClient.PatchAsync(_baseUrl + endpoint, null).Result;
+            try
+            {
+                var response = await _httpClient.PatchAsync(_baseUrl + endpoint, null);
 
-            string strResponse = response.Content.ReadAsStringAsync().Result;
-            response.EnsureSuccessStatusCode();
+                var strResponse = await response.Content.ReadAsStringAsync();
+                response.EnsureSuccessStatusCode();
 
-            T objReturn = JsonConvert.DeserializeObject<T>(strResponse);
+                ActionResult<T>? objReturn = JsonConvert.DeserializeObject<ActionResult<T>>(strResponse);
 
-            return objReturn;
+                return objReturn;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
     }
 }

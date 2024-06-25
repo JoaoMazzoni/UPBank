@@ -51,8 +51,8 @@ namespace EmployeeAPI.Controllers
         }
 
         // GET: api/Employees/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(string id)
+        [HttpGet("{document}")]
+        public async Task<ActionResult<Employee>> GetEmployee(string document)
         {
             if (_context.Employee == null)
             {
@@ -60,7 +60,7 @@ namespace EmployeeAPI.Controllers
             }
             try
             {
-                var employee = await _context.Employee.FindAsync(id);
+                var employee = await _context.Employee.FindAsync(document);
                 employee.Address = _addressService.GetAddressByAPI(employee.AddressId).Result;
 
                 if (employee == null)
@@ -99,7 +99,7 @@ namespace EmployeeAPI.Controllers
             }
         }
 
-        [HttpGet("get/customers_requests")]
+/*        [HttpGet("get/customers_requests")]
         public async Task<ActionResult<IEnumerable<Customer>>> GetCustomerResquests()
         {
             try
@@ -114,13 +114,13 @@ namespace EmployeeAPI.Controllers
             {
                 return Problem(ex.Message);
             }
-        }
+        }*/
 
         // PUT: api/Employees/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmployee(string id, Employee employee)
+        [HttpPut("{document}")]
+        public async Task<IActionResult> PutEmployee(string document, Employee employee)
         {
-            if (id != employee.Document)
+            if (document != employee.Document)
             {
                 return BadRequest();
             }
@@ -133,7 +133,7 @@ namespace EmployeeAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!EmployeeExists(id))
+                if (!EmployeeExists(document))
                 {
                     return NotFound();
                 }
@@ -174,18 +174,18 @@ namespace EmployeeAPI.Controllers
                 }
             }
 
-            return CreatedAtAction("GetEmployee", new { id = employee.Document }, employee);
+            return CreatedAtAction("GetEmployee", new { document = employee.Document }, employee);
         }
 
         // DELETE: api/Employees/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEmployee(string id)
+        [HttpDelete("{document}")]
+        public async Task<IActionResult> DeleteEmployee(string document)
         {
             if (_context.Employee == null)
             {
                 return NotFound();
             }
-            var employee = await _context.Employee.FindAsync(id);
+            var employee = await _context.Employee.FindAsync(document);
             if (employee == null)
             {
                 return NotFound();
@@ -200,39 +200,44 @@ namespace EmployeeAPI.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{manager}/accept/{customer}")]
-        public async Task<ActionResult<Customer>> AcceptAccountRequest(string customer, string manager)
+        [HttpPatch("{manager}/aprove/{customer}")]
+        public async Task<IActionResult> AcceptAccountRequest(string customer, string manager)
         {
-            var employee = await _context.Employee.FindAsync(manager);
-
-            if (employee == null)
+            try
             {
-                return NotFound("not was possible to find this employee, Document: " + manager);
-            }
-            if (employee.Manager)
+                var employee = await _context.Employee.FindAsync(manager);
+
+                if (employee == null)
+                {
+                    return NotFound("not was possible to find this employee, Document: " + manager);
+                }
+                if (employee.Manager)
+                {
+                    var customerApi = new ApiConsumer<IActionResult>("https://localhost:7045/api/Customers/");
+                    var customerAccepted = await customerApi.Patch(customer);
+
+                    return customerAccepted.Result;
+                }
+                else
+                    return Problem("This employee not is a manager");
+            }catch(Exception ex)
             {
-                var customerApi = new ApiConsumer<Customer>("https://localhost:7045/api/Customers/");
-                var customerAccpted = customerApi.Patch(customer);
-
-                return await customerAccpted;
+                return NoContent();
             }
-            else
-                return Problem("This employee not is a manager");
-
         }
 
-        private bool EmployeeExists(string id)
+        private bool EmployeeExists(string document)
         {
-            return (_context.Employee?.Any(e => e.Document == id)).GetValueOrDefault();
+            return (_context.Employee?.Any(e => e.Document == document)).GetValueOrDefault();
         }
         private async Task<Employee> BuildEmployee(EmployeeDTO employeeDTO)
         {
             string addressId = employeeDTO.AddressDTO.ZipCode + employeeDTO.AddressDTO.Number;
 
-            Address address = _addressService.GetAddressByAPI(addressId).Result;
+            Address address = await _addressService.GetAddressByAPI(addressId);
 
             if (address == null)
-                address = _addressService.PostAddress(employeeDTO.AddressDTO).Result;
+                address = await _addressService.PostAddress(employeeDTO.AddressDTO);
 
             Employee employee = new Employee(employeeDTO);
             employee.Address = address;
