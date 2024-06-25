@@ -21,10 +21,6 @@ namespace AddressAPI.Services
 
         public Address Post(Address address)
         {
-            if (AddressExists(address.Id))
-            {
-                throw new Exception("O endereço informado já existe e portando foi atribuído ao cliente.");
-            }
             _address.InsertOne(address);
             return address;
         }
@@ -44,15 +40,6 @@ namespace AddressAPI.Services
             }
             return address;
         }
-
-
-        private bool AddressExists(string id)
-        {
-            var address = _address.Find<Address>(address => address.Id == id).FirstOrDefault();
-            return address != null;
-        }
-
-
 
 
     }

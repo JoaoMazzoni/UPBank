@@ -11,8 +11,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountAPI.Migrations
 {
     [DbContext(typeof(AccountsApiContext))]
+<<<<<<<< HEAD:AccountAPI/Migrations/20240625131440_InitialCreated.Designer.cs
     [Migration("20240625131440_InitialCreated")]
     partial class InitialCreated
+========
+    [Migration("20240625131657_Initial")]
+    partial class Initial
+>>>>>>>> main:AccountAPI/Migrations/20240625131657_Initial.Designer.cs
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

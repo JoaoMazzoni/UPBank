@@ -20,10 +20,12 @@ public class AccountsApiContext : DbContext
             .ToTable("DisabledAccount");
 
         // Configura chave primária sem incremento automático
-        modelBuilder.Entity<CreditCard>(entity => { 
+        modelBuilder.Entity<CreditCard>(entity =>
+        {
             entity.HasKey(c => c.Number);
             entity.Property(c => c.Number).ValueGeneratedNever();
         });
+
         // Define a relação de muitos para muitos entre Conta e Operação
         modelBuilder.Entity<OperationAccount>()
             .HasOne(oa => oa.Account)
@@ -39,6 +41,7 @@ public class AccountsApiContext : DbContext
 
         // Define chaves compostas
         modelBuilder.Entity<OperationAccount>().HasKey(ac => new { ac.AccountId, ac.OperationId });
+        base.OnModelCreating(modelBuilder);
     }
 
     public DbSet<Account> Account { get; set; } = default!;
