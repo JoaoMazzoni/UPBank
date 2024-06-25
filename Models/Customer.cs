@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace Models
 {
-    public class Customer : Person
-    {
+public class Customer : Person
+{
         public bool Restriction { get; set; }
 
         public Customer()
-        {
-        }
+    {
+    }
 
         public Customer(CustomerDTO customerDTO) : base(customerDTO)
         {
@@ -21,5 +21,5 @@ namespace Models
         
         }
 
-    }
+}
 }

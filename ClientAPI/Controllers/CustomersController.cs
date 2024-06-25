@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CustomerAPI.Data;
 using Models;
@@ -51,6 +50,8 @@ namespace CustomerAPI.Controllers
             {
                 return NotFound();
             }
+
+            document = FormatCPF(document);
 
             var customer = await _context.Customer.FindAsync(document);
 
@@ -150,17 +151,28 @@ namespace CustomerAPI.Controllers
             {
                 return StatusCode(500, $"Erro ao atualizar o cliente: {ex.Message}");
             }
+           
         }
 
 
         // POST: api/Customers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(CustomerDTO customerDTO)
+        public async Task<ActionResult<AccountRequest>> PostCustomer(AccountRequestDTO customerDTO)
         {
-            var customer = new Customer(customerDTO);
+            var customer = new AccountRequest(customerDTO);
 
             var address = await _addressService.GetAddressByAPI(customerDTO.AddressDTO.ZipCode + customerDTO.AddressDTO.Number);
+
+            customer.Email = customer.Email.ToLower();
+
+            if (!ValidateCPF(customerDTO.Document))
+            {
+                return BadRequest("CPF inválido.");
+            }
+
+            var cpf = FormatCPF(customerDTO.Document);
+            customer.Document = cpf;
 
             if (address == null)
             {
@@ -177,7 +189,36 @@ namespace CustomerAPI.Controllers
                 return Problem("Entity set 'CustomerAPIContext.Customer' is null.");
             }
 
-            _context.Customer.Add(customer);
+            if(CustomerExists(cpf))
+            {
+                return Conflict("O cliente informado já possui uma conta.");
+            }
+
+            if(AccountRequestExists(cpf))
+            {
+                return Conflict("O cliente informado já possui uma solicitação de conta.");
+            }
+
+            if(RemovedCustomerExists(cpf))
+            {
+                var accountRequest  = ToAccountRequest(await _context.RemovedCustomer.FindAsync(cpf));
+                _context.AccountRequest.Add(accountRequest);
+                _context.RemovedCustomer.Remove(await _context.RemovedCustomer.FindAsync(cpf));
+                await _context.SaveChangesAsync();
+                return Ok("O cliente estava removido e foi recuperado para solicitar uma nova conta.");
+            }
+
+            if(customer.Address.Id == null)
+            {
+                return BadRequest("Endereço inválido.");
+            }
+            else
+            {
+                _context.AccountRequest.Add(customer);
+            }
+
+           
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -201,7 +242,8 @@ namespace CustomerAPI.Controllers
         [HttpDelete("{document}")]
         public async Task<IActionResult> DeleteCustomer(string document)
         {
-            
+            document = FormatCPF(document);
+
             var customer = await _context.Customer.FindAsync(document);
 
             if(RemovedCustomerExists(document))
@@ -237,6 +279,36 @@ namespace CustomerAPI.Controllers
             
         }
 
+        [HttpPatch("{document}")]
+        public async Task<IActionResult> MoveCustomer(string document)
+        {
+            document = FormatCPF(document);
+
+            var accountRequest = await _context.AccountRequest.FindAsync(document);
+
+            if (accountRequest == null)
+            {
+                return NotFound("Cliente não encontrado.");
+            }
+
+            var customer = MoveAccountRequest(accountRequest);
+
+            _context.Customer.Add(customer);
+            _context.AccountRequest.Remove(accountRequest);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok("Cliente criado com sucesso.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao criar o cliente: {ex.Message}");
+            }
+        }
+
+
+
         private RemovedCustomer CopyCustomer(Customer customer)
         {
             var removedCustomer = new RemovedCustomer
@@ -257,6 +329,42 @@ namespace CustomerAPI.Controllers
 
         }
 
+       private Customer MoveAccountRequest(AccountRequest accountRequest)
+        {
+            var customer = new Customer
+            {
+                Document = accountRequest.Document,
+                Name = accountRequest.Name,
+                BirthDate = accountRequest.BirthDate,
+                Gender = accountRequest.Gender,
+                Salary = accountRequest.Salary,
+                Email = accountRequest.Email,
+                Phone = accountRequest.Phone,
+                Address = accountRequest.Address,
+                AddressId = accountRequest.AddressId
+            };
+            
+            return customer;
+        }
+
+        private AccountRequest ToAccountRequest (RemovedCustomer removed)
+        {
+            var accountRequest = new AccountRequest
+            {
+                Document = removed.Document,
+                Name = removed.Name,
+                BirthDate = removed.BirthDate,
+                Gender = removed.Gender,
+                Salary = removed.Salary,
+                Email = removed.Email,
+                Phone = removed.Phone,
+                Address = removed.Address,
+                AddressId = removed.AddressId
+            };
+
+            return accountRequest;
+        }
+
         private bool CustomerExists(string document)
         {
             return (_context.Customer?.Any(e => e.Document == document)).GetValueOrDefault();
@@ -267,6 +375,22 @@ namespace CustomerAPI.Controllers
             return (_context.RemovedCustomer?.Any(e => e.Document == document)).GetValueOrDefault();
         }
 
-        
+        private bool AccountRequestExists(string document)
+        {
+            return (_context.AccountRequest?.Any(e => e.Document == document)).GetValueOrDefault();
+        }
+     
+        private bool ValidateCPF(string cpf)
+        {
+            return Models.Utils.CPFValidator.IsValid(cpf);
+        }
+
+        private string FormatCPF(string cpf)
+        {
+            return Models.Utils.CPFValidator.FormatCPF(cpf);
+        }
     }
 }
+
+
+

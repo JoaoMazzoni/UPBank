@@ -8,8 +8,7 @@ namespace AccountAPI.Services;
 public class AccountService
 {
     private HttpClient _http = new();
-    private readonly string _agencyBaseUri = "https://localhost:7196/api";
-    private readonly string _clientBaseUri = "https://localhost:7045/api";
+    private readonly string _customerBaseUri = "https://localhost:7045/api";
     private readonly string _employeeBaseUri = "https://localhost:7040/api";
 
     public Account PopulateAccountData(AccountDTO dto)
@@ -19,8 +18,8 @@ public class AccountService
             Number = dto.Number,
             AgencyNumber = dto.AgencyNumber,
             SavingsAccountNumber = dto.SavingsAccountNumber,
-            MainClientId = dto.MainClientId,
-            SecondaryClientId = dto.SecondaryClientId,
+            MainCustomerId = dto.MainCustomerId,
+            SecondaryCustomerId = dto.SecondaryCustomerId,
             Restriction = dto.Restriction,
             SpecialLimit = dto.SpecialLimit,
             Date = dto.Date,
@@ -42,8 +41,8 @@ public class AccountService
             Number = account.Number,
             AgencyNumber = account.AgencyNumber,
             SavingsAccountNumber = account.SavingsAccountNumber,
-            MainClientId = account.MainClientId,
-            SecondaryClientId = account.SecondaryClientId,
+            MainCustomerId = account.MainCustomerId,
+            SecondaryCustomerId = account.SecondaryCustomerId,
             CreditCard = account.CreditCard,
             Restriction = account.Restriction,
             SpecialLimit = account.SpecialLimit,
@@ -66,8 +65,8 @@ public class AccountService
             Number = disabledAccount.Number,
             AgencyNumber = disabledAccount.AgencyNumber,
             SavingsAccountNumber = disabledAccount.SavingsAccountNumber,
-            MainClientId = disabledAccount.MainClientId,
-            SecondaryClientId = disabledAccount.SecondaryClientId,
+            MainCustomerId = disabledAccount.MainCustomerId,
+            SecondaryCustomerId = disabledAccount.SecondaryCustomerId,
             CreditCard = disabledAccount.CreditCard,
             Restriction = disabledAccount.Restriction,
             SpecialLimit = disabledAccount.SpecialLimit,
@@ -99,18 +98,18 @@ public class AccountService
         return true;
     }
 
-    public async Task<CreditCard?> GenerateCreditCard(AccountProfile clientProfile, string clientCpf)
+    public async Task<CreditCard?> GenerateCreditCard(AccountProfile customerProfile, string customerCpf)
     {
-        Customer? client = new();
+        Customer? customer = new();
         long cardNumber;
         double cardLimit;
         DateTime expirationDate;
         CreditCardFlags cardFlag;
         try
         {
-            var clientResponse = await _http.GetAsync($"{_clientBaseUri}/{clientCpf}");
-            client = JsonConvert.DeserializeObject<Customer>(clientResponse.Content.ToJson());
-            if (client == null)
+            var customerResponse = await _http.GetAsync($"{_customerBaseUri}/{customerCpf}");
+            customer = JsonConvert.DeserializeObject<Customer>(customerResponse.Content.ToJson());
+            if (customer == null)
             {
                 return null;
             }
@@ -121,9 +120,9 @@ public class AccountService
             throw;
         }
 
-        var ownerName = client.Name;
+        var ownerName = customer.Name;
         var cardSecurityCode = $"{new Random().Next(1, 999)}".PadLeft(3, '0');
-        switch (clientProfile)
+        switch (customerProfile)
         {
             case AccountProfile.Academic:
                 cardNumber = new Random().NextInt64(3000000000000000, 9999999999999999);
