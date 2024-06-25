@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Models.DTO
 {
-    public class AccountRequestDTO : CustomerDTO
-    {
-    }
+public class AccountRequestDTO : CustomerDTO
+{
+}
 }
