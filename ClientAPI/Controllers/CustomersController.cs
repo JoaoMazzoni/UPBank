@@ -21,6 +21,54 @@ namespace CustomerAPI.Controllers
             _addressService = addressService;
         }
 
+        [HttpGet("byAccountRequest")]
+        public async Task<ActionResult<AccountRequest>> GetAllAccountRequest()
+        {
+            if (_context.AccountRequest == null)
+            {
+                return NotFound();
+            }
+
+            var accountRequest = await _context.AccountRequest.ToListAsync();
+
+            foreach (var account in accountRequest)
+            {
+                if (account.AddressId != null)
+                {
+                    account.Address = await _addressService.GetAddressByAPI(account.AddressId);
+                }
+            }
+
+            return Ok(accountRequest);
+        }
+        
+        
+
+        [HttpGet("byAccountRequest/{document}")]
+        public async Task<ActionResult<AccountRequest>> GetAccountRequest(string document)
+        {
+            if (_context.AccountRequest == null)
+            {
+                return NotFound();
+            }
+
+            document = FormatCPF(document);
+
+            var accountRequest = await _context.AccountRequest.FindAsync(document);
+
+            if (accountRequest == null)
+            {
+                return NotFound();
+            }
+
+            if (accountRequest.AddressId != null)
+            {
+                accountRequest.Address = await _addressService.GetAddressByAPI(accountRequest.AddressId);
+            }
+
+            return accountRequest;
+        }
+
         // GET: api/Customers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Customer>>> GetCustomer()
