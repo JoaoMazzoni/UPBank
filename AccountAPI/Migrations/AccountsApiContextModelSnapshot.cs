@@ -73,10 +73,7 @@ namespace AccountAPI.Migrations
             modelBuilder.Entity("Models.CreditCard", b =>
                 {
                     b.Property<long>("Number")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Number"), 1L, 1);
 
                     b.Property<bool>("Active")
                         .HasColumnType("bit");

@@ -8,8 +8,8 @@ namespace AccountAPI.Services;
 public class AccountService
 {
     private HttpClient _http = new();
-    private readonly string _customerBaseUri = "https://localhost:7045/api";
-    private readonly string _employeeBaseUri = "https://localhost:7040/api";
+    private readonly string _customerBaseUri = "https://localhost:7045/api/Customers";
+    private readonly string _employeeBaseUri = "https://localhost:7040/api/Employees";
 
     public async Task<Account> PopulateAccountData(AccountDTO dto)
     {
@@ -83,7 +83,7 @@ public class AccountService
         try
         {
             var employeeResponse = await _http.GetAsync($"{_employeeBaseUri}/{managerId}");
-            employee = JsonConvert.DeserializeObject<Employee>(employeeResponse.Content.ToJson());
+            employee = JsonConvert.DeserializeObject<Employee>(await employeeResponse.Content.ReadAsStringAsync());
 
             if (employee is not { Manager: true })
             {
@@ -124,24 +124,26 @@ public class AccountService
     public async Task<CreditCard?> GenerateCreditCard(AccountProfile customerProfile, string customerCpf)
     {
         Customer? customer = new();
+        try
+        {
+            var customerResponse = await _http.GetAsync($"{_customerBaseUri}/{customerCpf}");
+            customer = JsonConvert.DeserializeObject<Customer>(await customerResponse.Content.ReadAsStringAsync());
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            throw;
+        }
+
+        return customer;
+    }
+
+    public CreditCard? GenerateCreditCard(AccountProfile customerProfile, Customer customer)
+    {
         long cardNumber;
         double cardLimit;
         DateTime expirationDate;
         CreditCardFlags cardFlag;
-        try
-        {
-            var customerResponse = await _http.GetAsync($"{_customerBaseUri}/{customerCpf}");
-            customer = JsonConvert.DeserializeObject<Customer>(customerResponse.Content.ToJson());
-            if (customer == null)
-            {
-                return null;
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
 
         var ownerName = customer.Name;
         var cardSecurityCode = $"{new Random().Next(1, 999)}".PadLeft(3, '0');
