@@ -232,24 +232,52 @@ public class AccountsController : ControllerBase
         return CreatedAtAction("GetAccount", new { id = enabledAccount.Number }, enabledAccount);
     }
 
-    // DELETE: api/Accounts/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DisableAccount(string id)
+    // DELETE: api/Accounts/
+    [HttpDelete]
+    public async Task<ActionResult<AccountDTO>> RestrictAccount(RestrictAccountDTO restrictAccountRequest)
     {
         if (_context.Account == null)
         {
-            return NotFound();
+            return Problem("Entity set 'AccountsApiContext.Account'  is null.");
         }
 
-        var account = await _context.Account.FindAsync(id);
-        if (account == null)
+        restrictAccountRequest.CustomerDocument = CPFValidator.FormatCPF(restrictAccountRequest.CustomerDocument);
+        var isManagerRequest = await _accountService.ValidateManagerRequest(restrictAccountRequest.EmployeeId);
+        if (!isManagerRequest)
+        {
+            return Unauthorized("Nível insuficiente de acesso para a operação.");
+        }
+
+        var accountToRestrict =
+            await _context.Account.FirstOrDefaultAsync(ac => ac.Number == restrictAccountRequest.AccountNumber);
+        if (accountToRestrict == null)
         {
             return NotFound();
         }
 
-        _context.DisabledAccount.Add(_accountService.DisableAccountFeatures(account));
-        _context.Account.Remove(account);
-        await _context.SaveChangesAsync();
+        if (accountToRestrict.MainCustomerId != restrictAccountRequest.CustomerDocument)
+        {
+            return BadRequest("O documento do cliente não corresponde ao da conta solicitada.");
+        }
+
+        // Restringir a conta
+        accountToRestrict.Restriction = true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            if (AccountExists(accountToRestrict.Number))
+            {
+                return Conflict();
+            }
+            else
+            {
+                throw;
+            }
+        }
 
         return NoContent();
     }
