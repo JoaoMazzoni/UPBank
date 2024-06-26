@@ -53,4 +53,19 @@ public class Account
         Date = dto.Date;
         Balance = dto.Balance;
     }
+
+    public Account(DisabledAccount disabledAccount)
+    {
+        Number = disabledAccount.Number;
+        AgencyNumber = disabledAccount.AgencyNumber;
+        SavingsAccountNumber = disabledAccount.SavingsAccountNumber;
+        MainCustomerId = disabledAccount.MainCustomerId;
+        SecondaryCustomerId = disabledAccount.SecondaryCustomerId;
+        CreditCard = disabledAccount.CreditCard;
+        Restriction = disabledAccount.Restriction;
+        SpecialLimit = disabledAccount.SpecialLimit;
+        Date = disabledAccount.Date;
+        Balance = disabledAccount.Balance;
+        Profile = disabledAccount.Profile;
+    }
 }

@@ -8,25 +8,9 @@ namespace AccountAPI.Services;
 
 public class AccountService
 {
-    private HttpClient _http = new();
-    private readonly string _customerBaseUri = "https://localhost:7045/api/Customers";
-    private readonly string _employeeBaseUri = "https://localhost:7040/api/Employees";
-
-    public async Task<Account> PopulateAccountData(AccountDTO dto)
-    {
-        return new Account
-        {
-            Number = dto.Number,
-            AgencyNumber = dto.AgencyNumber,
-            SavingsAccountNumber = dto.SavingsAccountNumber,
-            MainCustomerId = dto.MainCustomerId,
-            SecondaryCustomerId = dto.SecondaryCustomerId,
-            Restriction = dto.Restriction,
-            SpecialLimit = dto.SpecialLimit,
-            Date = dto.Date,
-            Balance = dto.Balance
-        };
-    }
+    private readonly HttpClient _http = new();
+    private const string CustomerBaseUri = "https://localhost:7045/api/Customers";
+    private const string EmployeeBaseUri = "https://localhost:7040/api/Employees";
 
     public DisabledAccount DisableAccountFeatures(Account account)
     {
@@ -36,20 +20,7 @@ public class AccountService
             account.CreditCard.Active = false;
         }
 
-        return new DisabledAccount
-        {
-            Number = account.Number,
-            AgencyNumber = account.AgencyNumber,
-            SavingsAccountNumber = account.SavingsAccountNumber,
-            MainCustomerId = account.MainCustomerId,
-            SecondaryCustomerId = account.SecondaryCustomerId,
-            CreditCard = account.CreditCard,
-            Restriction = account.Restriction,
-            SpecialLimit = account.SpecialLimit,
-            Date = account.Date,
-            Balance = account.Balance,
-            Profile = account.Profile
-        };
+        return new DisabledAccount(account);
     }
 
     public Account EnableAccountFeatures(DisabledAccount disabledAccount)
@@ -60,20 +31,7 @@ public class AccountService
             disabledAccount.CreditCard.Active = false;
         }
 
-        return new Account
-        {
-            Number = disabledAccount.Number,
-            AgencyNumber = disabledAccount.AgencyNumber,
-            SavingsAccountNumber = disabledAccount.SavingsAccountNumber,
-            MainCustomerId = disabledAccount.MainCustomerId,
-            SecondaryCustomerId = disabledAccount.SecondaryCustomerId,
-            CreditCard = disabledAccount.CreditCard,
-            Restriction = disabledAccount.Restriction,
-            SpecialLimit = disabledAccount.SpecialLimit,
-            Date = disabledAccount.Date,
-            Balance = disabledAccount.Balance,
-            Profile = disabledAccount.Profile
-        };
+        return new Account(disabledAccount);
     }
 
     public async Task<bool> ValidateManagerRequest(string managerIdStr)
@@ -81,7 +39,7 @@ public class AccountService
         try
         {
             var id = int.Parse(managerIdStr);
-            var employeeResponse = await _http.GetAsync($"{_employeeBaseUri}/Get/Managers/");
+            var employeeResponse = await _http.GetAsync($"{EmployeeBaseUri}/Get/Managers/");
             if (employeeResponse.StatusCode != HttpStatusCode.OK)
             {
                 return false;
@@ -95,7 +53,7 @@ public class AccountService
             }
 
             var foundEmployee = employees.Find(e => e.Register == id);
-            if (foundEmployee == null || !foundEmployee.Manager)
+            if (foundEmployee is not { Manager: true } or null)
             {
                 return false;
             }
@@ -115,7 +73,8 @@ public class AccountService
         {
             <= 2000 => AccountProfile.Academic,
             <= 5000 => AccountProfile.Normal,
-            > 5000 => AccountProfile.Premium
+            > 5000 => AccountProfile.Premium,
+            _ => throw new ArgumentOutOfRangeException(nameof(salary), salary, "Invalid customer salary.")
         };
         return profile;
     }
@@ -126,7 +85,8 @@ public class AccountService
         {
             <= 2000 => 500,
             <= 5000 => 2000,
-            > 5000 => 4000
+            > 5000 => 4000,
+            _ => throw new ArgumentOutOfRangeException(nameof(salary), salary, "Invalid customer salary.")
         };
         return specialLimit;
     }
@@ -136,7 +96,7 @@ public class AccountService
         Customer? customer;
         try
         {
-            var customerResponse = await _http.GetAsync($"{_customerBaseUri}/{customerCpf}");
+            var customerResponse = await _http.GetAsync($"{CustomerBaseUri}/{customerCpf}");
             if (customerResponse.StatusCode != HttpStatusCode.OK)
             {
                 return null;
