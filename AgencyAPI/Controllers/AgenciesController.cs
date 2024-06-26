@@ -186,8 +186,16 @@ namespace AgencyAPI.Controllers
         [HttpPut("Restricted/{number}")]
         public async Task<IActionResult> PutRestrictedAgency(string number)
         {
-            var agencyGet = await GetAgency(number);
-            var agency = agencyGet.Value;
+            var agency = await _context.Agency.Include(e => e.Employees).Where(c => c.Number == number).SingleOrDefaultAsync();
+
+            var address = await _addressService.GetAddressById(agency.AddressId);
+            agency.Address = address;
+
+            foreach (var employee in agency.Employees)
+            {
+                employee.Address = await _addressService.GetAddressById(employee.AddressId);
+            }
+
             if (agency.Restriction)
                 agency.Restriction = false;
             else
