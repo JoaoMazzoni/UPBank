@@ -272,7 +272,7 @@ namespace EmployeeAPI.Controllers
         }
 
         [HttpPost("{manager}/set/account")]
-        public async Task<ActionResult<Account>> SetAccountProfile(string manager, AccountDTO accountDTO)
+        public async Task<ActionResult<Account>> SetAccountProfile(string manager, AccountInsertDTO accountDTO)
         {
             try
             {
