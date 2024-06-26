@@ -30,19 +30,22 @@ public class AccountsController : ControllerBase
             return NotFound();
         }
 
-        return await _context.Account.ToListAsync();
+        return await _context.Account.Include(ac => ac.CreditCard).ToListAsync();
     }
 
     // GET: api/Accounts/5
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Account>> GetAccount(string id)
+    [HttpGet("{accountNumber}")]
+    public async Task<ActionResult<Account>> GetAccount(string accountNumber)
     {
         if (_context.Account == null)
         {
             return NotFound();
         }
 
-        var account = await _context.Account.FindAsync(id);
+        var account = await _context.Account
+            .Include(ac => ac.CreditCard)
+            .Where(ac => ac.Number == accountNumber)
+            .FirstOrDefaultAsync();
 
         if (account == null)
         {
@@ -95,6 +98,12 @@ public class AccountsController : ControllerBase
         }
 
         var account = new Account(accountDto);
+        var agencyStatus = await _accountService.CheckAgencyStatus(account.AgencyNumber);
+        if (!agencyStatus)
+        {
+            return BadRequest("Agency has restriction or doesnt exist.");
+        }
+
         var customer = await _accountService.GetCustomerData(account.MainCustomerId);
         if (customer == null)
         {

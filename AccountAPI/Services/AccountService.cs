@@ -11,6 +11,7 @@ public class AccountService
     private readonly HttpClient _http = new();
     private const string CustomerBaseUri = "https://localhost:7045/api/Customers";
     private const string EmployeeBaseUri = "https://localhost:7040/api/Employees";
+    private const string AgencyBaseUri = "https://localhost:7196/api/Agencies";
 
     public DisabledAccount DisableAccountFeatures(Account account)
     {
@@ -144,5 +145,30 @@ public class AccountService
         }
 
         return creditCard;
+    }
+
+    public async Task<bool> CheckAgencyStatus(string agencyNumber)
+    {
+        try
+        {
+            var agencyResponse = await _http.GetAsync($"{AgencyBaseUri}/{agencyNumber}");
+            if (agencyResponse.StatusCode != HttpStatusCode.OK)
+            {
+                return false;
+            }
+
+            var agency = JsonConvert.DeserializeObject<Agency>(await agencyResponse.Content.ReadAsStringAsync());
+            if (agency is null or { Restriction: true })
+            {
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
+        return true;
     }
 }
