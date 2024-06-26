@@ -58,30 +58,5 @@ namespace AgencyAPI.Services
             }
             return null;
         }
-
-        public async Task<ActionResult<IEnumerable<Account>>> GetActiveLoan()
-        {
-            var response = await _client.GetAsync("https://localhost:7285/api/accounts");
-
-            if (response.IsSuccessStatusCode)
-            {
-                List<Account> activeLoans = new();
-
-                var accounts = await response.Content.ReadFromJsonAsync<List<Account>>();
-
-                foreach (var account in accounts)
-                {
-                    if (account.OperationAccounts.Equals("Loan"))
-                        activeLoans.Add(account);
-                }
-
-                if (activeLoans != null)
-                    return activeLoans;
-                else
-                    return null;
-            }
-            else
-                return null;
-        }
     }
 }

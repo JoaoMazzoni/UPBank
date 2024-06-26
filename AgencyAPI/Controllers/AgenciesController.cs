@@ -16,12 +16,15 @@ namespace AgencyAPI.Controllers
         private readonly IAddressService _addressService;
         private readonly IEmployeeService _employeeService;
         private readonly IAccountService _accountService;
-        public AgenciesController(AgencyAPIContext context, IAddressService address, IEmployeeService employee, IAccountService account)
+        private readonly IOperationService _operationService;
+
+        public AgenciesController(AgencyAPIContext context, IAddressService address, IEmployeeService employee, IAccountService account, IOperationService operationService)
         {
             _context = context;
             _addressService = address;
             _employeeService = employee;
             _accountService = account;
+            _operationService = operationService;
         }
 
         // POST: api/Agencies
@@ -149,9 +152,7 @@ namespace AgencyAPI.Controllers
                         }
 
                         else
-                        {
                             return BadRequest("Funcionario ja cadastrado em alguma agencia!");
-                        }
                     }      
                 }
 
@@ -164,13 +165,9 @@ namespace AgencyAPI.Controllers
                 catch (DbUpdateConcurrencyException e)
                 {
                     if (!AgencyExists(number))
-                    {
                         return NotFound("Agency não encontrada");
-                    }
                     else
-                    {
                         return BadRequest("Houve um erro inesperado:" + e.Message);
-                    }
                 }
             }
 
@@ -252,7 +249,7 @@ namespace AgencyAPI.Controllers
                 var employees = agency.Employees;
 
                 foreach (var employee in employees)
-                    employee.Address = await _addressService.GetAddress(employee.AddressId);
+                    employee.Address = await _addressService.GetAddressById(employee.AddressId);
             }
             return Ok(agency);
         }
@@ -268,16 +265,10 @@ namespace AgencyAPI.Controllers
             var agency = await _context.Agency.FindAsync(number);
             var employees = await _context.Employee.ToListAsync();
 
-            //var employees = await _employeeService.GetEmployees();
-
-            
-
             List<RemovedAgencyEmployee> employeesOnAgency = new List<RemovedAgencyEmployee>();
             
             foreach (var emp in employees)
             {
-                //var emp = await _employeeService.IfExistGetEmployeeOnAgency(employee.Document);
-                //var employeeNumber = await _employeeService.GetEmployeeAgencyNumber(employee.Document);
                 var employeeNew = new RemovedAgencyEmployee
                 {
                     AddressId = emp.AddressId,
@@ -389,14 +380,31 @@ namespace AgencyAPI.Controllers
         [HttpGet("RestrictAccounts")]
         public async Task<ActionResult<IEnumerable<Account>>> GetRestrictedAccounts()
         {
-            return await _accountService.GetRestrictedAccounts();
+            var restrictedAccounts = await _accountService.GetRestrictedAccounts();
+            if (restrictedAccounts == null)
+            {
+                return NotFound("Não há contas restritas");
+            }
+            else
+            {
+                return Ok(restrictedAccounts);
+            }
+
         }
 
         //Get: api/Agencies/AccountsPerProfile
         [HttpGet("AccountsPerProfile/{profile}")]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccountsPerProfile(string profile)
         {
-            return await _accountService.GetAccountsPerProfile(profile);
+            var acconts = await _accountService.GetAccountsPerProfile(profile);
+            if (acconts == null)
+            {
+                return NotFound("Não há contas com esse perfil");
+            }
+            else
+            {
+                return Ok(acconts);
+            }
         }
 
 
@@ -404,9 +412,17 @@ namespace AgencyAPI.Controllers
         //Get: api/Agencies/ActiveLoan
         [HttpGet("CustomerWithActiveLoan")]
 
-        public async Task<ActionResult<IEnumerable<Account>>> GetActiveLoan()
+        public async Task<ActionResult<IEnumerable<Operation>>> GetActiveLoan()
         {
-            return await _accountService.GetActiveLoan();
+            var loans = await _operationService.GetActiveLoan();
+            if (loans == null)
+            {
+                return NotFound("Não há contas com emprestimo");
+            }
+            else
+            {
+                return Ok(loans);
+            }
         }
 
     }

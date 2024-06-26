@@ -7,8 +7,6 @@ namespace AgencyAPI.Services
     {
         Task<List<Account>> GetRestrictedAccounts();
 
-        Task<List<Account>> GetAccountsPerProfile(string profile);
-
-        Task<ActionResult<IEnumerable<Account>>> GetActiveLoan();    
+        Task<List<Account>> GetAccountsPerProfile(string profile);   
     }
 }
