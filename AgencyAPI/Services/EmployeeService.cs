@@ -1,16 +1,15 @@
 ﻿using Models;
 using Newtonsoft.Json;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace AgencyAPI.Services
 {
-    public class EmployeeService
+    public class EmployeeService : IEmployeeService
     {
         private static readonly HttpClient _client = new HttpClient();
-        private readonly AddressService _addressService;
+        private readonly IAddressService _addressService;
 
-        public EmployeeService(AddressService address)
+        public EmployeeService(IAddressService address)
         {
             _addressService = address;
         }

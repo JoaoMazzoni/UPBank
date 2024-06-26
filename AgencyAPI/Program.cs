@@ -11,9 +11,9 @@ builder.Services.AddDbContext<AgencyAPIContext>(options =>
 builder.Services.AddControllers();
 
 
-builder.Services.AddScoped<AddressService>();
-builder.Services.AddScoped<EmployeeService>();
-builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 
 var app = builder.Build();

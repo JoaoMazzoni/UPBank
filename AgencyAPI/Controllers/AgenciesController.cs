@@ -4,7 +4,6 @@ using AgencyAPI.Data;
 using Models;
 using AgencyAPI.Services;
 using Models.DTO;
-using NuGet.Protocol;
 
 namespace AgencyAPI.Controllers
 {
@@ -13,10 +12,10 @@ namespace AgencyAPI.Controllers
     public class AgenciesController : ControllerBase
     {
         private readonly AgencyAPIContext _context;
-        private readonly AddressService _addressService;
-        private readonly EmployeeService _employeeService;
-        private readonly AccountService _accountService;
-        public AgenciesController(AgencyAPIContext context, AddressService address, EmployeeService employee, AccountService account)
+        private readonly IAddressService _addressService;
+        private readonly IEmployeeService _employeeService;
+        private readonly IAccountService _accountService;
+        public AgenciesController(AgencyAPIContext context, IAddressService address, IEmployeeService employee, IAccountService account)
         {
             _context = context;
             _addressService = address;
@@ -49,29 +48,17 @@ namespace AgencyAPI.Controllers
                 }
             }
 
-            if (employees == null)
-                return BadRequest("Funcionario não encontrado!");
-
-            else if (!(employees.Find(e => e.Manager).Manager))
+            var manager = employees.Find(e => e.Manager);
+            if (manager == null)
                 return BadRequest("É necessário ter um gerente na agencia!");
 
             else
                 agency.Employees = employees;
 
-
             Address address = await _addressService.PostAddress(agencyDTO.Address);
 
-            address.Number = agencyDTO.Address.Number;
-            address.Complement = agencyDTO.Address.Complement;
-
-            if (address == null)
-                return BadRequest("Endereço não encontrado!");
-
-            else
-            {
-                agency.Address = address;
-                agency.AddressId = address.Id;
-            }
+            agency.Address = address;
+            agency.AddressId = agencyDTO.Address.ZipCode + agencyDTO.Address.Number;
 
             agency.Number = agencyDTO.Number;
             agency.Restriction = agencyDTO.Restriction;
