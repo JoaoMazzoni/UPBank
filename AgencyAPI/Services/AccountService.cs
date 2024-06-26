@@ -25,8 +25,6 @@ namespace AgencyAPI.Services
 
                 if (restrictedAccounts != null)
                     return restrictedAccounts;
-                else
-                    return null;
             }
             else
                 return null;
@@ -43,19 +41,10 @@ namespace AgencyAPI.Services
                     var accountsPerProfile = accounts.Where(a => a.Profile.ToString().Equals(profile)).ToList();
                     //(profile)).ToList();
                     if (accountsPerProfile.Count != 0)
-                    {
-                        return accountsPerProfile;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Nenhuma conta do perfil: {profile}");
-                    }
+                        return accountsPerProfile; 
                 }
             }
-            else
-            {
-                Console.WriteLine("Erro ao recuperar contas da API");
-            }
+            
             return null;
         }
     }
