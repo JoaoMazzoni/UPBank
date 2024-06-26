@@ -408,11 +408,11 @@ namespace AgencyAPI.Controllers
         }
 
         //Get: api/Agencies/ActiveLoan
-        [HttpGet("CustomerWithActiveLoan")]
+        [HttpGet("ActiveLoan")]
 
-        public async Task<ActionResult<IEnumerable<Operation>>> GetActiveLoan(string account)
+        public async Task<ActionResult<IEnumerable<Operation>>> GetActiveLoan()
         {
-            var loans = await _operationService.GetOperationsByTypeLoan(account);
+            var loans = await _operationService.GetOperationsByTypeLoan();
             if (loans == null)
             {
                 return NotFound("Não há contas com emprestimo");

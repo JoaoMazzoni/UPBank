@@ -7,21 +7,13 @@ namespace AgencyAPI.Services
     {
         private static readonly HttpClient _client = new HttpClient();
 
-        public async Task<List<Operation>> GetOperationsByTypeLoan(string account)
+        public async Task<List<Operation>> GetOperationsByTypeLoan()
         {
-            var response = await _client.GetAsync("https://localhost:7285/api/Operations/" + account + "/3");
+            var response = await _client.GetAsync("https://localhost:7285/api/Operations/type/" + 2);
 
             if (response.IsSuccessStatusCode)
             {
-                List<Operation> operations = new();
-
-                var operationsList = await response.Content.ReadFromJsonAsync<List<Operation>>();
-
-                foreach (var operation in operationsList)
-                {
-                    if (operation.Type.Equals("Transfer"))
-                        operations.Add(operation);
-                }
+                List<Operation> operations = await response.Content.ReadFromJsonAsync<List<Operation>>();
 
                 if (operations != null)
                     return operations;

@@ -14,6 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IOperationService, OperationService>();
 
 
 var app = builder.Build();
