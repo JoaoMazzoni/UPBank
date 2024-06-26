@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Models.Utils;
 using Newtonsoft.Json;
 using System.Text;
@@ -16,18 +17,27 @@ namespace EmployeeAPI
             _baseUrl = baseUrl;
         }
 
-        public async Task<T> Get(string endpoint, bool ignoreProperty)
+        public async Task<T>? Get(string endpoint, bool ignoreProperty)
         {
-            var response = await _httpClient.GetAsync(_baseUrl + endpoint);
-            response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync();
-
             T objectReturn;
 
-            if (ignoreProperty)
-                objectReturn = JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() });
-            else
-                objectReturn = JsonConvert.DeserializeObject<T>(json);
+            try
+            {
+                var response = await _httpClient.GetAsync(_baseUrl + endpoint);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+
+
+                if (ignoreProperty)
+                    objectReturn = JsonConvert.DeserializeObject<T>(json, new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() });
+                else
+                    objectReturn = JsonConvert.DeserializeObject<T>(json);
+            }
+            catch
+            (Exception ex)
+            {
+                throw new NullReferenceException();
+            }
 
             return objectReturn;
         }
@@ -55,9 +65,31 @@ namespace EmployeeAPI
                 var strResponse = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
 
-                ActionResult<T>? objReturn = JsonConvert.DeserializeObject<ActionResult<T>>(strResponse);
 
+                var objReturn = JsonConvert.DeserializeObject<ActionResult<T>>(strResponse);
                 return objReturn;
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public async Task<ActionResult> PatchReturnAction(string endpoint)
+        {
+            try
+            {
+                var response = await _httpClient.PatchAsync(_baseUrl + endpoint, null);
+
+                var strResponse = await response.Content.ReadAsStringAsync();
+                response.EnsureSuccessStatusCode();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return new NoContentResult();
+                }
+                return null;
             }
             catch (Exception ex)
             {
