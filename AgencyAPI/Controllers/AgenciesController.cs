@@ -33,7 +33,7 @@ namespace AgencyAPI.Controllers
         {
             Agency agency = new();
             List<Employee> employees = new();
-            
+
             var deleted = await _context.AgencyHistory.FirstOrDefaultAsync(e => e.Number == agencyDTO.Number);
 
             if (_context.Agency == null)
@@ -44,11 +44,16 @@ namespace AgencyAPI.Controllers
                     BadRequest("A agencia foi deletada! Restaure ela");
             }
 
-            agencyDTO.CNPJ = Agency.RemoveMask(agencyDTO.CNPJ); 
+            agencyDTO.CNPJ = Agency.RemoveMask(agencyDTO.CNPJ);
 
             if (!Agency.VerifyCNPJ(agencyDTO.CNPJ))
                 return BadRequest("CNPJ inválido!");
-
+            else
+            {
+                var existCnpj = await _context.Agency.AnyAsync(e => e.CNPJ == agencyDTO.CNPJ);
+                if (existCnpj)
+                    return BadRequest("CNPJ já cadastrado!");
+            }
             agencyDTO.CNPJ = Agency.InsertMask(agencyDTO.CNPJ);
 
             foreach (var employee in agencyDTO.Employees)
@@ -58,7 +63,7 @@ namespace AgencyAPI.Controllers
                 else
                 {
                     var ifEmployeeExistInAgencies = await _context.Employee.AnyAsync(e => e.Document == employee);
-                    
+
 
                     if (!ifEmployeeExistInAgencies)
                     {
@@ -69,7 +74,7 @@ namespace AgencyAPI.Controllers
                         }
                         employees.Add(await _employeeService.GetEmployee(employee));
                     }
-                       
+
                     else
                     {
                         return BadRequest("Funcionario ja cadastrado em alguma agencia!");
@@ -153,7 +158,7 @@ namespace AgencyAPI.Controllers
 
                         else
                             return BadRequest("Funcionario ja cadastrado em alguma agencia!");
-                    }      
+                    }
                 }
 
                 _context.Update(agency);
@@ -266,7 +271,7 @@ namespace AgencyAPI.Controllers
             var employees = await _context.Employee.ToListAsync();
 
             List<RemovedAgencyEmployee> employeesOnAgency = new List<RemovedAgencyEmployee>();
-            
+
             foreach (var emp in employees)
             {
                 var employeeNew = new RemovedAgencyEmployee
@@ -298,7 +303,7 @@ namespace AgencyAPI.Controllers
                 CNPJ = agency.CNPJ,
                 Restriction = agency.Restriction
             };
-         
+
             _context.AgencyHistory.Add(agencyCopied);
             _context.Agency.Remove(agency);
 
@@ -343,7 +348,7 @@ namespace AgencyAPI.Controllers
                         Salary = employee.Salary
                     };
                     employees.Add(employeesNew);
-;                   _context.RemovedAgencyEmployee.Remove(employee);
+                    ; _context.RemovedAgencyEmployee.Remove(employee);
                 }
 
                 var agencyCopied = new Agency
