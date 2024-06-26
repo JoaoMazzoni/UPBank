@@ -33,12 +33,14 @@ namespace AgencyAPI.Services
 
         public async Task<Employee> GetEmployee(string cpf)
         {
+            cpf = cpf.Replace(".", "").Replace("-", "");
+            cpf = cpf.Insert(3, ".").Insert(7, ".").Insert(11, "-");
             var response = await _client.GetAsync($"https://localhost:7040/api/Employees/{cpf}");
 
             if (response.IsSuccessStatusCode)
             {
                 var employee = await response.Content.ReadFromJsonAsync<Employee>();
-                employee.Address = await _addressService.GetAddress(employee.AddressId);
+                employee.Address = await _addressService.GetAddress(employee.AddressId);  
                 return employee;
             }
             else

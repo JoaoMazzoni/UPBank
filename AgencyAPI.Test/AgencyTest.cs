@@ -38,7 +38,28 @@ namespace AgencyAPI.Test
             Register = 0,
             AddressId = "1599706012"
         };
+        
+        static Employee employee1 = new Employee
+        {
+            Name = "maria",
+            Document = "49625029800",
+            Manager = false,
+            BirthDate = "1985-05-15",
+            Gender = "Female",
+            Salary = 75000.00,
+            Email = "maria.doe@example.com",
+            Phone = "1234567890",
 
+            Address = new Address
+            {
+                ZipCode = "15997050",
+                Number = 190,
+                Complement = ""
+            },
+            Register = 0,
+            AddressId = "15997050190"
+        };
+        
         static AgencyDTO agencyDTO = new AgencyDTO
         {
             Number = "0932",
@@ -51,6 +72,27 @@ namespace AgencyAPI.Test
                 Number = 12,
                 Complement = ""
             }
+        };
+
+        static AgencyPatchDTO agencyPatchDTO = new AgencyPatchDTO
+        {
+            Employees = new List<string> { employee1.Document },
+            Address = new AddressDTO
+            {
+                ZipCode = "",
+                Number = 0,
+                Complement = ""
+            }
+        };
+
+        static Agency agency = new Agency
+        {
+            Number = "0932",
+            CNPJ = "35159537000183",
+            Employees = new List<Employee> { employee },
+            Restriction = false,
+            Address = address,
+            AddressId = "1599706012"
         };
 
         static AddressDTO addressDTO = new AddressDTO
@@ -150,9 +192,54 @@ namespace AgencyAPI.Test
 
             var resultDelete = await _controller.DeleteAgency(agencyDTO.Number);
 
-            Assert.True(resultDelete.Equals(resultDelete));
-
+            Assert.IsType<OkObjectResult>(resultDelete);
         }
-        
+
+        [Fact]
+        public async void DeleteAndRestorageAgency_ReturnSucess()
+        {
+            employee.Manager = true;
+
+            _mockEmployeeService.Setup(service => service.PostEmployee(employee));
+            var employeeResult = _mockEmployeeService.Setup(e => e.GetEmployee(It.IsAny<string>())).ReturnsAsync(employee);
+
+            await _controller.PostAgency(agencyDTO);
+
+            var resultDelete = await _controller.DeleteAgency(agencyDTO.Number);
+
+            var resultRestorage = await _controller.RestorageAgency(agencyDTO.Number);
+
+            Assert.IsType<OkObjectResult>(resultRestorage);
+        }
+
+        [Fact]
+        public async void GetAgencyByNumber_ReturnSucess()
+        {
+            employee.Manager = true;
+
+            _mockEmployeeService.Setup(service => service.PostEmployee(employee));
+            var employeeResult = _mockEmployeeService.Setup(e => e.GetEmployee(It.IsAny<string>())).ReturnsAsync(employee);
+
+            await _controller.PostAgency(agencyDTO);
+
+            var resultGet = await _controller.GetAgency(agencyDTO.Number);
+
+            Assert.IsType<OkObjectResult>(resultGet.Result);
+        }
+
+        [Fact]
+        public async void GetAgency_ReturnSucess()
+        {
+            employee.Manager = true;
+
+            _mockEmployeeService.Setup(service => service.PostEmployee(employee));
+            var employeeResult = _mockEmployeeService.Setup(e => e.GetEmployee(It.IsAny<string>())).ReturnsAsync(employee);
+
+            await _controller.PostAgency(agencyDTO);
+
+            var resultGet = await _controller.GetAgency();
+
+            Assert.IsType<OkObjectResult>(resultGet.Result);
+        }
     }
 }
