@@ -220,7 +220,7 @@ namespace CustomerAPI.Controllers
                 }
                 else
                 {
-                    return StatusCode(500, "Erro de concorrência ao atualizar o cliente. Tente novamente.");
+                    return StatusCode(500, "Erro ao atualizar o cliente. Tente novamente.");
                 }
             }
             catch (Exception ex)
