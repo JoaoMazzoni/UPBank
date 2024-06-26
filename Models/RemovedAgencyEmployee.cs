@@ -10,6 +10,6 @@ namespace Models
     public class RemovedAgencyEmployee : Person
     {
         public bool Manager { get; set; }
-        public int Register { get; set; }      
+        public int Register { get; set; } 
     }
 }
