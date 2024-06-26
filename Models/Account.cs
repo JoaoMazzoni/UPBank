@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using Models.DTO;
+using Models.Utils;
 
 namespace Models;
 
@@ -34,8 +35,9 @@ public class Account
         Number = dto.Number;
         AgencyNumber = dto.AgencyNumber;
         SavingsAccountNumber = dto.SavingsAccountNumber;
-        MainCustomerId = dto.MainCustomerId;
-        SecondaryCustomerId = dto.SecondaryCustomerId;
+        MainCustomerId = CPFValidator.FormatCPF(dto.MainCustomerId);
+        SecondaryCustomerId =
+            dto.SecondaryCustomerId is not null ? CPFValidator.FormatCPF(dto.SecondaryCustomerId) : null;
         Date = DateTime.Now;
         Restriction = true;
         Balance = 0;
@@ -46,8 +48,9 @@ public class Account
         Number = dto.Number;
         AgencyNumber = dto.AgencyNumber;
         SavingsAccountNumber = dto.SavingsAccountNumber;
-        MainCustomerId = dto.MainCustomerId;
-        SecondaryCustomerId = dto.SecondaryCustomerId;
+        MainCustomerId = CPFValidator.FormatCPF(dto.MainCustomerId);
+        SecondaryCustomerId =
+            dto.SecondaryCustomerId is not null ? CPFValidator.FormatCPF(dto.SecondaryCustomerId) : null;
         Restriction = dto.Restriction;
         SpecialLimit = dto.SpecialLimit;
         Date = dto.Date;
