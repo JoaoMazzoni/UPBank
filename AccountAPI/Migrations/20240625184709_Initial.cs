@@ -9,6 +9,57 @@ namespace AccountAPI.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(@"CREATE OR ALTER TRIGGER UpdateBalance
+            on OperationAccount 
+            AFTER INSERT
+            AS
+            BEGIN
+	            DECLARE @AccountId nvarchar(450),
+			            @DestinyAccount nvarchar(450),
+			            @OperationId int,
+			            @OperationType int,
+			            @OperationValue float,
+			            @NewOperationId int;
+
+	            SELECT @AccountId = AccountId,
+		               @OperationId = OperationId from inserted;
+	            SELECT @OperationType = Type, @OperationValue = Value, @DestinyAccount = AccountNumber
+                FROM Operation
+                WHERE Id = @OperationId;
+
+	            IF @OperationType = 0 OR @OperationType = 4
+	            BEGIN 
+		            UPDATE Account
+		            SET Balance = Balance - @OperationValue
+		            WHERE Number = @AccountId;
+	            END
+	            ELSE IF @OperationType = 1 OR @OperationType = 2 
+	            BEGIN
+		            UPDATE Account
+		            SET Balance = Balance + @OperationValue
+		            WHERE Number = @AccountId;
+	            END
+	            ELSE IF @OperationType = 3
+	            BEGIN
+		            UPDATE Account
+		            SET Balance = Balance + @OperationValue
+		            WHERE Number = @AccountId ;
+		            UPDATE Account 
+		            SET Balance = Balance - @OperationValue
+		            WHERE Number = @DestinyAccount;
+
+		            INSERT INTO Operation (dbo.Operation.Type, AccountNumber, Value, Date)
+		            VALUES
+		            (@OperationType, @AccountId, @OperationValue * -1, GETDATE());
+		
+		            Set @NewOperationId = SCOPE_IDENTITY();
+		            INSERT INTO OperationAccount (AccountId,OperationId)
+		            VALUES
+		            (@DestinyAccount,@NewOperationId);
+	            END
+            END
+
+            ");
             migrationBuilder.CreateTable(
                 name: "CreditCard",
                 columns: table => new
@@ -147,6 +198,7 @@ namespace AccountAPI.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("DROP TRIGGER IF EXISTS UpdateBalance");
             migrationBuilder.DropTable(
                 name: "DisabledAccount");
 

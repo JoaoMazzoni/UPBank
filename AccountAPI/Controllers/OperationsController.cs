@@ -25,21 +25,20 @@ public class OperationsController : ControllerBase
         _operationService = operationService;
     }
 
+
     [HttpGet("type/{type}", Name = "GetByType")]
     public async Task<ActionResult<IEnumerable<OperationDTO>>> GetByType(int type)
     {
-        List<OperationDTO> operations = new();
+        List<OperationDTO> operations = new List<OperationDTO>();
         var result = await _context.Operation.Include(a => a.Account).Where(t => t.Type == (Type)type).ToListAsync();
         if (_context.Operation == null)
         {
             return NotFound();
         }
-
         if (result == null)
         {
             return NotFound();
         }
-
         if (result.Count == 0)
         {
             return Problem("Nenhuma transação com o tipo definido encontrada no banco");
@@ -57,29 +56,25 @@ public class OperationsController : ControllerBase
             };
             operations.Add(dto);
         }
-
         return operations;
     }
-
-    // GET: api/Operations/
+    // GET: api/Operations/5
     [HttpGet]
     public async Task<ActionResult<IEnumerable<OperationDTO>>> GetOperation()
     {
-        List<OperationDTO> operations = new();
+        List<OperationDTO> operations = new List<OperationDTO>();
         if (_context.Operation == null)
         {
             return NotFound();
         }
-
         var result = await _context.Operation.Include(a => a.Account).ToListAsync();
-        foreach (var operation in result)
+        foreach (Operation operation in result)
         {
             if (operation.Account == null)
             {
                 continue;
             }
-
-            var dto = new OperationDTO()
+            OperationDTO dto = new OperationDTO()
             {
                 Id = operation.Id,
                 Type = operation.Type,
@@ -88,37 +83,75 @@ public class OperationsController : ControllerBase
             };
             operations.Add(dto);
         }
-
         return operations;
     }
-
-    // POST: api/Operations
-    [HttpPost]
-    public async Task<ActionResult<OperationDTO>> PostOperation(OperationDTO dto)
+   [HttpGet("All/{AccountNumber}")]
+   public async Task<ActionResult<IEnumerable<OperationDTO>>> GetByNumber(string AccountNumber)
     {
-        var operation = _operationService.GenerateOperation(dto);
-        operation.Account = await _context.Account.FindAsync(dto.AccountNumber);
-        var ac = new OperationAccount()
+        List<OperationDTO> operations = new List<OperationDTO>();
+        if (_context.Operation == null)
         {
-            AccountId = operation.Account.Number,
-            Account = operation.Account,
+            return NotFound();
+        }
+        var result = await _context.Operation.Include(a => a.Account).Where(n => n.Account.Number == AccountNumber).ToListAsync();
+        foreach (Operation operation in result)
+        {
+            if (operation.Account == null)
+            {
+                continue;
+            }
+            OperationDTO dto = new OperationDTO()
+            {
+                Id = operation.Id,
+                Type = operation.Type,
+                AccountNumber = operation.Account.Number,
+                Value = operation.Value
+            };
+            operations.Add(dto);
+        }
+        return operations;
+    }
+    // POST: api/Operations
+    [HttpPost("{OriginalAccount}")]
+    public async Task<ActionResult<OperationDTO>> PostOperation(string OriginalAccount, OperationDTO dto)
+    {
+        //Falta verificar os valores e operações, se o valor da operação é condizente com a operação, > < == 0, se possui o valor para transferir etc, se possui restrição
+        Account account = await _context.Account.FindAsync(OriginalAccount);
+        if (account == null)
+        {
+            return BadRequest();
+        }
+        Operation operation = _operationService.GenerateOperation(dto);
+        operation.Account = await _context.Account.FindAsync(dto.AccountNumber);
+        if (operation.Account == null)
+        {
+            throw new ArgumentException("Conta de destino não encontrada");
+        }
+        OperationAccount ac = new OperationAccount()
+        {
+            AccountId = OriginalAccount,
+            Account = account,
             OperationId = operation.Id,
             Operation = operation
+     
         };
-        if ((int)dto.Type >= 5 || (int)dto.Type < 0)
+        if((int)dto.Type >= 5 || (int) dto.Type < 0)
         {
-            return Problem("Tipo de transação inválida");
+            throw new ArgumentException("Tipo de transação inválida");
         }
-
+        if ((int)dto.Type == 3)
+        {
+            operation.Value *= -1;
+        }
         if (operation == null)
         {
             return NotFound();
         }
-
         _context.OperationAccount.Add(ac);
         await _context.SaveChangesAsync();
         return CreatedAtAction("GetOperation", new { id = 0 }, dto);
     }
+    
 
     // PUT: api/Operations/5
     [HttpPut("{id}")]
