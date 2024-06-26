@@ -1,8 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AccountAPI.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.DTO;
+using Models.Utils;
 using NuGet.Protocol;
 
 namespace AccountAPI.Controllers;
@@ -29,19 +35,22 @@ public class AccountsController : ControllerBase
             return NotFound();
         }
 
-        return await _context.Account.ToListAsync();
+        return await _context.Account.Include(ac => ac.CreditCard).ToListAsync();
     }
 
     // GET: api/Accounts/5
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Account>> GetAccount(string id)
+    [HttpGet("{accountNumber}")]
+    public async Task<ActionResult<Account>> GetAccount(string accountNumber)
     {
         if (_context.Account == null)
         {
             return NotFound();
         }
 
-        var account = await _context.Account.FindAsync(id);
+        var account = await _context.Account
+            .Include(ac => ac.CreditCard)
+            .Where(ac => ac.Number == accountNumber)
+            .FirstOrDefaultAsync();
 
         if (account == null)
         {
@@ -61,7 +70,7 @@ public class AccountsController : ControllerBase
             return BadRequest();
         }
 
-        var account = _accountService.PopulateAccountData(accountDto);
+        var account = new Account(accountDto);
         _context.Entry(account).State = EntityState.Modified;
 
         try
@@ -86,28 +95,36 @@ public class AccountsController : ControllerBase
     // POST: api/Accounts
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<AccountDTO>> PostAccount(AccountDTO accountDto)
+    public async Task<ActionResult<AccountDTO>> PostAccount(AccountInsertDTO accountDto)
     {
         if (_context.Account == null)
         {
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
         }
 
-        var account = _accountService.PopulateAccountData(accountDto);
-        var customer = await _accountService.GetCostumerData(account.MainCustomerId);
-        if (customer == null)
+        var account = new Account(accountDto);
+        var agencyStatus = await _accountService.CheckAgencyStatus(account.AgencyNumber);
+        if (!agencyStatus)
         {
-            return BadRequest("Customer not found.");
+            return BadRequest("Agência não emcontrada ou dispõe de restrições.");
         }
 
-        account.CreditCard = _accountService.GenerateCreditCard(account.Profile, customer);
+        var customer = await _accountService.GetCustomerData(account.MainCustomerId);
+        if (customer == null)
+        {
+            return BadRequest("Cliente não encontrado.");
+        }
+
+        account.Profile = _accountService.GetProfileBySalary(customer.Salary);
+        account.SpecialLimit = _accountService.GetSpecialLimitBySalary(customer.Salary);
+        account.CreditCard =
+            _accountService.GenerateCreditCard(account.Profile, customer.Name);
         if (account.CreditCard == null)
         {
-            return BadRequest("Invalid information retrieved from '/api/Customer'");
+            return BadRequest("Informações do cliente inválidas.");
         }
 
         _context.Account.Add(account);
-
         try
         {
             await _context.SaveChangesAsync();
@@ -124,13 +141,14 @@ public class AccountsController : ControllerBase
             }
         }
 
-        return CreatedAtAction("GetAccount", new { id = accountDto.Number }, accountDto);
+        return CreatedAtAction("GetAccount", new { id = account.Number }, account);
     }
 
-    // POST: api/Accounts/Recover
+    // POST: api/Accounts/Activate
     [HttpPost("Activate")]
     public async Task<ActionResult<AccountDTO>> ActivateAccount(ActivateAccountDTO activateAccountRequest)
     {
+        activateAccountRequest.CustomerDocument = CPFValidator.FormatCPF(activateAccountRequest.CustomerDocument);
         if (_context.Account == null)
         {
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
@@ -139,7 +157,7 @@ public class AccountsController : ControllerBase
         var isManagerRequest = await _accountService.ValidateManagerRequest(activateAccountRequest.EmployeeId);
         if (!isManagerRequest)
         {
-            return Unauthorized("Access level denied.");
+            return Unauthorized("Nível insuficiente de acesso para a operação.");
         }
 
         var account = await _context.Account.FindAsync(activateAccountRequest.AccountNumber);
@@ -150,24 +168,25 @@ public class AccountsController : ControllerBase
 
         if (account.MainCustomerId != activateAccountRequest.CustomerDocument)
         {
-            return BadRequest("Customer document doesn't match target account.");
+            return BadRequest("O documento do cliente não corresponde ao da conta solicitada.");
         }
 
         if (!account.Restriction)
         {
-            return BadRequest("Account already activated.");
+            return BadRequest("A conta já se encontra ativada.");
         }
 
         account.Restriction = false;
         await _context.SaveChangesAsync();
 
-        return Ok();
+        return Ok("Conta ativada com sucesso.");
     }
 
     // POST: api/Accounts/Recover
     [HttpPost("Recover")]
     public async Task<ActionResult<AccountDTO>> RecoverAccount(RecoverAccountDTO recoverAccountRequest)
     {
+        recoverAccountRequest.CustomerDocument = CPFValidator.FormatCPF(recoverAccountRequest.CustomerDocument);
         if (_context.Account == null)
         {
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
@@ -176,7 +195,7 @@ public class AccountsController : ControllerBase
         var isManagerRequest = await _accountService.ValidateManagerRequest(recoverAccountRequest.EmployeeId);
         if (!isManagerRequest)
         {
-            return Unauthorized("Access level denied.");
+            return Unauthorized("Nível insuficiente de acesso para a operação.");
         }
 
         var disabledAccount = await _context.DisabledAccount.FindAsync(recoverAccountRequest.AccountNumber);
@@ -187,7 +206,7 @@ public class AccountsController : ControllerBase
 
         if (disabledAccount.MainCustomerId != recoverAccountRequest.CustomerDocument)
         {
-            return BadRequest("Customer document doesn't match target account.");
+            return BadRequest("O documento do cliente não corresponde ao da conta solicitada.");
         }
 
         var enabledAccount = _accountService.EnableAccountFeatures(disabledAccount);

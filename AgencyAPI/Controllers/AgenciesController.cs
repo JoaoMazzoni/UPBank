@@ -13,10 +13,10 @@ namespace AgencyAPI.Controllers
     public class AgenciesController : ControllerBase
     {
         private readonly AgencyAPIContext _context;
-        private readonly AddressService _addressService;
-        private readonly EmployeeService _employeeService;
-        private readonly AccountService _accountService;
-        public AgenciesController(AgencyAPIContext context, AddressService address, EmployeeService employee, AccountService account)
+        private readonly IAddressService _addressService;
+        private readonly IEmployeeService _employeeService;
+        private readonly IAccountService _accountService;
+        public AgenciesController(AgencyAPIContext context, IAddressService address, IEmployeeService employee, IAccountService account)
         {
             _context = context;
             _addressService = address;
@@ -30,48 +30,61 @@ namespace AgencyAPI.Controllers
         {
             Agency agency = new();
             List<Employee> employees = new();
+            
+            var deleted = await _context.AgencyHistory.FirstOrDefaultAsync(e => e.Number == agencyDTO.Number);
 
             if (_context.Agency == null)
                 return Problem("Entity set 'AgencyAPIContext.Agency'  is null.");
+            else
+            {
+                if (deleted != null)
+                    BadRequest("A agencia foi deletada! Restaure ela");
+            }
+
+            agencyDTO.CNPJ = Agency.RemoveMask(agencyDTO.CNPJ); 
 
             if (!Agency.VerifyCNPJ(agencyDTO.CNPJ))
                 return BadRequest("CNPJ inválido!");
 
+            agencyDTO.CNPJ = Agency.InsertMask(agencyDTO.CNPJ);
+
             foreach (var employee in agencyDTO.Employees)
             {
                 if (employee == null)
-                    return BadRequest("Funcionario não foi achado.");
+                    return BadRequest("Funcionario não foi encontrado.");
                 else
                 {
-                    var ifEmployeeExistInAgencies = await _employeeService.GetEmployeeOnAgency(employee);
-                    if (ifEmployeeExistInAgencies == null)
+                    var ifEmployeeExistInAgencies = await _context.Employee.AnyAsync(e => e.Document == employee);
+                    
+
+                    if (!ifEmployeeExistInAgencies)
+                    {
+                        var ifEmployeeExistInAgenciesHistory = await _context.RemovedAgencyEmployee.AnyAsync(e => e.Document == employee);
+                        if (ifEmployeeExistInAgenciesHistory)
+                        {
+                            _context.RemovedAgencyEmployee.Remove(await _context.RemovedAgencyEmployee.FirstOrDefaultAsync(e => e.Document == employee));
+                        }
                         employees.Add(await _employeeService.GetEmployee(employee));
+                    }
+                       
+                    else
+                    {
+                        return BadRequest("Funcionario ja cadastrado em alguma agencia!");
+                    }
                 }
             }
 
-            if (employees == null)
-                return BadRequest("Funcionario não encontrado!");
-
-            else if (!(employees.Find(e => e.Manager).Manager))
+            var manager = employees.Find(e => e.Manager);
+            if (manager == null)
                 return BadRequest("É necessário ter um gerente na agencia!");
 
             else
                 agency.Employees = employees;
 
-
             Address address = await _addressService.PostAddress(agencyDTO.Address);
 
-            address.Number = agencyDTO.Address.Number;
-            address.Complement = agencyDTO.Address.Complement;
-
-            if (address == null)
-                return BadRequest("Endereço não encontrado!");
-
-            else
-            {
-                agency.Address = address;
-                agency.AddressId = address.Id;
-            }
+            agency.Address = address;
+            agency.AddressId = agencyDTO.Address.ZipCode + agencyDTO.Address.Number;
 
             agency.Number = agencyDTO.Number;
             agency.Restriction = agencyDTO.Restriction;
@@ -101,13 +114,15 @@ namespace AgencyAPI.Controllers
         [HttpPut("{number}")]
         public async Task<IActionResult> PutAgency(string number, AgencyPatchDTO agencyPatchDTO)
         {
-            var agencyGet = await GetAgency(number);
-            var agency = agencyGet.Value;
+            var agency = await _context.Agency.Include(e => e.Employees).Where(c => c.Number == number).SingleOrDefaultAsync();
 
             if (!agency.Restriction)
             {
                 if (number != agency.Number)
                     return BadRequest("O numero da agencia não foi encontrado");
+
+                var address = await _addressService.GetAddressById(agency.AddressId);
+                agency.Address = address;
 
                 if ((agency.Address.ZipCode != agencyPatchDTO.Address.ZipCode && agencyPatchDTO.Address.ZipCode != "") || (agency.Address.Number != agencyPatchDTO.Address.Number && agencyPatchDTO.Address.Number != 0) || (agency.Address.Complement != agencyPatchDTO.Address.Complement && agencyPatchDTO.Address.Complement != ""))
                 {
@@ -120,7 +135,24 @@ namespace AgencyAPI.Controllers
                 if (agencyPatchDTO.Employees != null)
                 {
                     foreach (var employee in agencyPatchDTO.Employees)
-                        agency.Employees.Add(await _employeeService.GetEmployee(employee));
+                    {
+                        var ifEmployeeExistInAgencies = await _context.Employee.AnyAsync(e => e.Document == employee);
+
+                        if (!ifEmployeeExistInAgencies)
+                        {
+                            var ifEmployeeExistInAgenciesHistory = await _context.RemovedAgencyEmployee.AnyAsync(e => e.Document == employee);
+                            if (ifEmployeeExistInAgenciesHistory)
+                            {
+                                _context.RemovedAgencyEmployee.Remove(await _context.RemovedAgencyEmployee.FirstOrDefaultAsync(e => e.Document == employee));
+                            }
+                            agency.Employees.Add(await _employeeService.GetEmployee(employee));
+                        }
+
+                        else
+                        {
+                            return BadRequest("Funcionario ja cadastrado em alguma agencia!");
+                        }
+                    }      
                 }
 
                 _context.Update(agency);
@@ -189,12 +221,12 @@ namespace AgencyAPI.Controllers
             var agencies = await _context.Agency.Include(e => e.Employees).ToListAsync();
             foreach (var agency in agencies)
             {
-                agency.Address = await _addressService.GetAddress(agency.AddressId);
+                agency.Address = await _addressService.GetAddressById(agency.AddressId);
 
                 var employees = agency.Employees;
                 foreach (var employee in employees)
                 {
-                    employee.Address = await _addressService.GetAddress(employee.AddressId);
+                    employee.Address = await _addressService.GetAddressById(employee.AddressId);
                 }
             }
 
@@ -212,7 +244,7 @@ namespace AgencyAPI.Controllers
             var agency = await _context.Agency.Include(e => e.Employees).Where(c => c.Number == number).SingleOrDefaultAsync();
 
             if (agency == null)
-                return NotFound("Agencia não foi encontrada@");
+                return NotFound("Agencia não foi encontrada!");
             else
             {
                 agency.Address = await _addressService.GetAddress(agency.AddressId);
@@ -234,14 +266,18 @@ namespace AgencyAPI.Controllers
                 return NotFound("Agencia não encontada!");
             }
             var agency = await _context.Agency.FindAsync(number);
-            var agencyDb = await GetAgency(number);
-            agencyDb = agencyDb.Value;
+            var employees = await _context.Employee.ToListAsync();
 
-            List<RemovedAgencyEmployee> employees = new();
+            //var employees = await _employeeService.GetEmployees();
 
-            foreach (var employee in agencyDb.Value.Employees)
+            
+
+            List<RemovedAgencyEmployee> employeesOnAgency = new List<RemovedAgencyEmployee>();
+            
+            foreach (var emp in employees)
             {
-                var emp = await _employeeService.GetEmployee(employee.Document);
+                //var emp = await _employeeService.IfExistGetEmployeeOnAgency(employee.Document);
+                //var employeeNumber = await _employeeService.GetEmployeeAgencyNumber(employee.Document);
                 var employeeNew = new RemovedAgencyEmployee
                 {
                     AddressId = emp.AddressId,
@@ -256,22 +292,22 @@ namespace AgencyAPI.Controllers
                     Address = emp.Address,
                     Salary = emp.Salary
                 };
-                employees.Add(employeeNew);
+                employeesOnAgency.Add(employeeNew);
+                _context.Employee.Remove(emp);
             }
 
             Address address = await _addressService.GetAddressById(agency.AddressId);
-
 
             var agencyCopied = new RemovedAgency
             {
                 Number = agency.Number,
                 AddressId = agency.AddressId,
                 Address = address,
-                Employees = employees,
+                Employees = employeesOnAgency,
                 CNPJ = agency.CNPJ,
                 Restriction = agency.Restriction
             };
-
+         
             _context.AgencyHistory.Add(agencyCopied);
             _context.Agency.Remove(agency);
 
@@ -299,9 +335,8 @@ namespace AgencyAPI.Controllers
             {
                 agencyDb.Address = await _addressService.GetAddress(agencyDb.AddressId);
                 List<Employee> employees = new();
-                foreach (var employee in employees)
+                foreach (var employee in agencyDb.Employees)
                 {
-                    employee.Address = await _addressService.GetAddress(employee.AddressId);
                     var employeesNew = new Employee
                     {
                         AddressId = employee.AddressId,
@@ -317,6 +352,7 @@ namespace AgencyAPI.Controllers
                         Salary = employee.Salary
                     };
                     employees.Add(employeesNew);
+;                   _context.RemovedAgencyEmployee.Remove(employee);
                 }
 
                 var agencyCopied = new Agency

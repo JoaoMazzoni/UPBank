@@ -4,7 +4,10 @@ using CustomerAPI.Data;
 using Models;
 using Models.DTO;
 using Models.Utils;
+using Newtonsoft.Json;
+using System.Net.Http;
 using Models.CopyClasses;
+
 
 namespace CustomerAPI.Controllers
 {
@@ -14,6 +17,9 @@ namespace CustomerAPI.Controllers
     {
         private readonly CustomerAPIContext _context;
         private readonly AddressService _addressService;
+        private readonly Models.CopyClasses.AccountRequest _accountRequest = new Models.CopyClasses.AccountRequest();
+        private readonly Models.CopyClasses.RemovedCustomer _removedCustomer = new Models.CopyClasses.RemovedCustomer();
+        private static readonly HttpClient _httpClient = new HttpClient();
 
         public CustomersController(CustomerAPIContext context, AddressService addressService)
         {
@@ -150,6 +156,7 @@ namespace CustomerAPI.Controllers
             var cpf = FormatCPF(customerDTO.Document);
             customer.Document = cpf;
 
+
             customer.AddressId = customer.AddressId.Replace("-", "");
 
             if (address == null)
@@ -213,7 +220,7 @@ namespace CustomerAPI.Controllers
                 }
                 else
                 {
-                    return StatusCode(500, "Erro de concorrência ao atualizar o cliente. Tente novamente.");
+                    return StatusCode(500, "Erro ao atualizar o cliente. Tente novamente.");
                 }
             }
             catch (Exception ex)
@@ -229,8 +236,15 @@ namespace CustomerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<AccountRequest>> PostCustomer(AccountRequestDTO customerDTO)
         {
-            
+         
             var customer = new AccountRequest(customerDTO);
+
+            var employee = await GetEmployeeByAPI(customer.Document);
+
+            if(employee != null)
+            {
+                customer = _accountRequest.EmployeeToCustomer(employee);
+            }
 
             var address = await _addressService.GetAddressByAPI(customerDTO.AddressDTO.ZipCode + customerDTO.AddressDTO.Number);
 
@@ -264,6 +278,7 @@ namespace CustomerAPI.Controllers
                 
             }
 
+
             if (_context.Customer == null)
             {
                 return Problem("Entity set 'CustomerAPIContext.Customer' is null.");
@@ -281,7 +296,7 @@ namespace CustomerAPI.Controllers
 
             if(RemovedCustomerExists(cpf))
             {
-                var accountRequest  = ToAccountRequest(await _context.RemovedCustomer.FindAsync(cpf));
+                var accountRequest  = _accountRequest.ToAccountRequest(await _context.RemovedCustomer.FindAsync(cpf));
                 _context.AccountRequest.Add(accountRequest);
                 _context.RemovedCustomer.Remove(await _context.RemovedCustomer.FindAsync(cpf));
                 await _context.SaveChangesAsync();
@@ -292,6 +307,7 @@ namespace CustomerAPI.Controllers
             {
                 return BadRequest("Endereço inválido.");
             }
+           
             else
             {
                 _context.AccountRequest.Add(customer);
@@ -313,7 +329,7 @@ namespace CustomerAPI.Controllers
                 }
             }
 
-            return customer;
+            return Created("", customer);
         }
 
         // DELETE: api/Customers/5
@@ -336,7 +352,7 @@ namespace CustomerAPI.Controllers
 
             try
             {
-                var copyCustomer = CopyCustomer(customer);
+                var copyCustomer = _removedCustomer.CopyCustomer(customer);
                 _context.Customer.Remove(customer);
                 _context.RemovedCustomer.Add(copyCustomer);
 
@@ -369,7 +385,7 @@ namespace CustomerAPI.Controllers
                 return NotFound("Cliente não encontrado.");
             }
 
-            var customer = MoveAccountRequest(accountRequest);
+            var customer = _accountRequest.MoveAccountRequest(accountRequest);
 
             _context.Customer.Add(customer);
             _context.AccountRequest.Remove(accountRequest);
@@ -385,63 +401,6 @@ namespace CustomerAPI.Controllers
             }
         }
 
-
-
-        private RemovedCustomer CopyCustomer(Customer customer)
-        {
-            var removedCustomer = new RemovedCustomer
-            {
-
-                Document = customer.Document,
-                Name = customer.Name,
-                BirthDate = customer.BirthDate,
-                Gender = customer.Gender,
-                Salary = customer.Salary,
-                Email = customer.Email,
-                Phone = customer.Phone,
-                Address = customer.Address,
-                AddressId = customer.AddressId
-            };
-
-            return removedCustomer;
-
-        }
-
-       private Customer MoveAccountRequest(AccountRequest accountRequest)
-        {
-            var customer = new Customer
-            {
-                Document = accountRequest.Document,
-                Name = accountRequest.Name,
-                BirthDate = accountRequest.BirthDate,
-                Gender = accountRequest.Gender,
-                Salary = accountRequest.Salary,
-                Email = accountRequest.Email,
-                Phone = accountRequest.Phone,
-                Address = accountRequest.Address,
-                AddressId = accountRequest.AddressId
-            };
-            
-            return customer;
-        }
-
-        private AccountRequest ToAccountRequest (RemovedCustomer removed)
-        {
-            var accountRequest = new AccountRequest
-            {
-                Document = removed.Document,
-                Name = removed.Name,
-                BirthDate = removed.BirthDate,
-                Gender = removed.Gender,
-                Salary = removed.Salary,
-                Email = removed.Email,
-                Phone = removed.Phone,
-                Address = removed.Address,
-                AddressId = removed.AddressId
-            };
-
-            return accountRequest;
-        }
 
         private bool CustomerExists(string document)
         {
@@ -467,6 +426,36 @@ namespace CustomerAPI.Controllers
         {
             return Models.Utils.CPFValidator.FormatCPF(cpf);
         }
+
+        private async Task<Employee> GetEmployeeByAPI(string document)
+        {
+            try
+            {
+                document = document.Replace("-", "");
+                var response = await _httpClient.GetAsync($"https://localhost:7040/api/Employees/{document}");
+                if (response.IsSuccessStatusCode)
+                {
+                    string employeeReturn = await response.Content.ReadAsStringAsync();
+                    JsonSerializerSettings settings = new JsonSerializerSettings { ContractResolver = new IgnoreJsonPropertyContractResolver() };
+                    var employee = JsonConvert.DeserializeObject<Employee>(employeeReturn, settings);
+                    if (employee != null)
+                    {
+                        return employee;
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ArgumentException("Erro ao enviar requisições para a API " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException("API não encontrada " + ex.Message);
+            }
+            return null;
+        }
+
+
     }
 }
 

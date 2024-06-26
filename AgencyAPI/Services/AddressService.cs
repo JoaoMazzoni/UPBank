@@ -2,12 +2,11 @@
 using Models;
 using Models.DTO;
 using Newtonsoft.Json;
-using System.Runtime.ConstrainedExecution;
 using System.Text;
 
 namespace AgencyAPI.Services
 {
-    public class AddressService
+    public class AddressService : IAddressService
     {
         private static readonly HttpClient _client = new HttpClient();
 
@@ -43,17 +42,17 @@ namespace AgencyAPI.Services
             {
                 var content = new StringContent(JsonConvert.SerializeObject(address), Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PostAsync("https://localhost:7238/api/Addresses", content);
+                await _client.PostAsync("https://localhost:7238/api/Addresses", content);
 
-                response.EnsureSuccessStatusCode();
-                string addressResponse = await response.Content.ReadAsStringAsync();
-                Address address1 = JsonConvert.DeserializeObject<Address>(addressResponse);
-                return address1;
+                string id = address.ZipCode + address.Number;
+                var add = GetAddressById(id);
+                
+                return add.Result;
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return null;
+                throw new Exception(e.Message);
             }
         }
 
@@ -69,8 +68,6 @@ namespace AgencyAPI.Services
             else
                 return null;
         }
-
-
 
         public async Task<Address> PutAddress(string zipCode, AddressDTO address)
         {

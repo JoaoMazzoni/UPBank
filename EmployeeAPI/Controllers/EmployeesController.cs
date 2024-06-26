@@ -53,6 +53,7 @@ namespace EmployeeAPI.Controllers
         [HttpGet("{document}")]
         public async Task<ActionResult<Employee>> GetEmployee(string document)
         {
+            
             if (_context.Employee == null)
             {
                 return NotFound();

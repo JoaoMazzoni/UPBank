@@ -33,7 +33,7 @@ public class BalancesController : ControllerBase
 
         if (accountNumber == null)
         {
-            return BadRequest("AccountNumber argument missing.");
+            return BadRequest("O argumento 'targetAccountNumber' é necessário.");
         }
 
         var account = await _context.Account.FindAsync(accountNumber);
