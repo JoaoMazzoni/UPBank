@@ -10,8 +10,8 @@ namespace Models
     {
         Withdraw,
         Deposit,
-        Transfer,
         Loan,
+        Transfer,
         Payment
     }
 }

@@ -112,20 +112,29 @@ public class OperationsController : ControllerBase
         return operations;
     }
     // POST: api/Operations
-    [HttpPost("{OriginalAccount}")]
-    public async Task<ActionResult<OperationDTO>> PostOperation(string OriginalAccount, OperationDTO dto)
+    [HttpPost("{Type}/{OriginalAccount}")]
+    public async Task<ActionResult<OperationDTO>> PostOperation(string Type, string OriginalAccount, OperationDTO dto)
     {
-        //Falta verificar os valores e operações, se o valor da operação é condizente com a operação, > < == 0, se possui o valor para transferir etc, se possui restrição
+        if (!Enum.TryParse(Type,true,out Type type))
+        {
+            return BadRequest("Tipo inválido");
+        }
+        dto.Type = type;
         Account account = await _context.Account.FindAsync(OriginalAccount);
         if (account == null)
         {
             return BadRequest();
         }
-        Operation operation = _operationService.GenerateOperation(dto);
-        operation.Account = await _context.Account.FindAsync(dto.AccountNumber);
-        if (operation.Account == null)
+        _operationService.CheckOperation(account, dto);
+        Operation operation = _operationService.GenerateOperation(dto,(int)dto.Type == 3);
+        //Se for transferencia procura e popula a conta de destino
+        if((int)dto.Type == 3)
         {
-            throw new ArgumentException("Conta de destino não encontrada");
+            operation.Account = await _context.Account.FindAsync(dto.AccountNumber);
+            if (operation.Account == null)
+            {
+                throw new ArgumentException("Conta de destino não encontrada");
+            }
         }
         OperationAccount ac = new OperationAccount()
         {
@@ -147,9 +156,15 @@ public class OperationsController : ControllerBase
         {
             return NotFound();
         }
+        _context.Operation.Add(operation);
+        await _context.SaveChangesAsync();
+
+        dto.Id = operation.Id;
+        dto.Date = operation.Date;
+
         _context.OperationAccount.Add(ac);
         await _context.SaveChangesAsync();
-        return CreatedAtAction("GetOperation", new { id = 0 }, dto);
+        return CreatedAtAction("GetOperation", new { id = operation.Id }, dto);
     }
     
 
@@ -164,4 +179,5 @@ public class OperationsController : ControllerBase
     public void Delete(int id)
     {
     }
+    
 }
