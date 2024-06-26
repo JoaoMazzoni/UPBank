@@ -467,6 +467,8 @@ namespace CustomerAPI.Controllers
         {
             return Models.Utils.CPFValidator.FormatCPF(cpf);
         }
+
+        
     }
 }
 
