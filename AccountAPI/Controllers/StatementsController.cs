@@ -6,6 +6,8 @@ using AccountAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Build.Evaluation;
+using Microsoft.EntityFrameworkCore;
+using Models.DTO;
 
 namespace AccountAPI.Controllers;
 
@@ -22,11 +24,34 @@ public class StatementsController : ControllerBase
         _statementService = statementService;
     }
 
-    // GET: api/Statements/All/0001
-    [HttpGet("All/{accountNumber}")]
-    public ActionResult<List<Operation>> GetByAccount()
+    [HttpGet("{number}")]
+    public async Task<ActionResult<IEnumerable<OperationDTO>>> GetByAccoutNumber(string number)
     {
-        var accountStatements = new List<Operation>();
-        return accountStatements;
+        List<OperationDTO> operations = new();
+        if (_context.Operation == null)
+        {
+            return NotFound();
+        }
+
+        var result = await _context.OperationAccount.Include(oa => oa.Operation).ThenInclude(a => a.Account)
+            .Where(oa => oa.AccountId == number).ToListAsync();
+        foreach (var operationAccount in result)
+        {
+            var dto = new OperationDTO()
+            {
+                Id = operationAccount.Operation.Id,
+                Type = operationAccount.Operation.Type,
+                Value = operationAccount.Operation.Value,
+                Date = operationAccount.Operation.Date
+            };
+            if (operationAccount.Operation.Account is not null)
+            {
+                dto.TargetAccountNumber = operationAccount.Operation.Account.Number;
+            }
+
+            operations.Add(dto);
+        }
+
+        return operations;
     }
 }
