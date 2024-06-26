@@ -9,57 +9,6 @@ namespace AccountAPI.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql(@"CREATE OR ALTER TRIGGER UpdateBalance
-            on OperationAccount 
-            AFTER INSERT
-            AS
-            BEGIN
-	            DECLARE @AccountId nvarchar(450),
-			            @DestinyAccount nvarchar(450),
-			            @OperationId int,
-			            @OperationType int,
-			            @OperationValue float,
-			            @NewOperationId int;
-
-	            SELECT @AccountId = AccountId,
-		               @OperationId = OperationId from inserted;
-	            SELECT @OperationType = Type, @OperationValue = Value, @DestinyAccount = AccountNumber
-                FROM Operation
-                WHERE Id = @OperationId;
-
-	            IF @OperationType = 0 OR @OperationType = 4
-	            BEGIN 
-		            UPDATE Account
-		            SET Balance = Balance - @OperationValue
-		            WHERE Number = @AccountId;
-	            END
-	            ELSE IF @OperationType = 1 OR @OperationType = 2 
-	            BEGIN
-		            UPDATE Account
-		            SET Balance = Balance + @OperationValue
-		            WHERE Number = @AccountId;
-	            END
-	            ELSE IF @OperationType = 3
-	            BEGIN
-		            UPDATE Account
-		            SET Balance = Balance + @OperationValue
-		            WHERE Number = @AccountId ;
-		            UPDATE Account 
-		            SET Balance = Balance - @OperationValue
-		            WHERE Number = @DestinyAccount;
-
-		            INSERT INTO Operation (dbo.Operation.Type, AccountNumber, Value, Date)
-		            VALUES
-		            (@OperationType, @AccountId, @OperationValue * -1, GETDATE());
-		
-		            Set @NewOperationId = SCOPE_IDENTITY();
-		            INSERT INTO OperationAccount (AccountId,OperationId)
-		            VALUES
-		            (@DestinyAccount,@NewOperationId);
-	            END
-            END
-
-            ");
             migrationBuilder.CreateTable(
                 name: "CreditCard",
                 columns: table => new
@@ -75,6 +24,20 @@ namespace AccountAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CreditCard", x => x.Number);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Loan",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AccountNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CustomerDocument = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Loan", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -138,7 +101,6 @@ namespace AccountAPI.Migrations
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
                     AccountNumber = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DestinyAccountNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Value = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
@@ -194,13 +156,68 @@ namespace AccountAPI.Migrations
                 name: "IX_OperationAccount_OperationId",
                 table: "OperationAccount",
                 column: "OperationId");
+            migrationBuilder.Sql(@"CREATE OR ALTER TRIGGER UpdateBalance
+            on OperationAccount 
+            AFTER INSERT
+            AS
+            BEGIN
+	            DECLARE @AccountId nvarchar(450),
+			            @DestinyAccount nvarchar(450),
+			            @OperationId int,
+			            @OperationType int,
+			            @OperationValue float,
+			            @NewOperationId int;
+
+	            SELECT @AccountId = AccountId,
+		               @OperationId = OperationId from inserted;
+	            SELECT @OperationType = Type, @OperationValue = Value, @DestinyAccount = AccountNumber
+                FROM Operation
+                WHERE Id = @OperationId;
+
+	            IF @OperationType = 0 OR @OperationType = 4
+	            BEGIN 
+		            UPDATE Account
+		            SET Balance = Balance - @OperationValue
+		            WHERE Number = @AccountId;
+	            END
+	            ELSE IF @OperationType = 1 OR @OperationType = 2 
+	            BEGIN
+		            UPDATE Account
+		            SET Balance = Balance + @OperationValue
+		            WHERE Number = @AccountId;
+	            END
+	            ELSE IF @OperationType = 3
+	            BEGIN
+		            UPDATE Account
+		            SET Balance = Balance + @OperationValue
+		            WHERE Number = @AccountId ;
+		            UPDATE Account 
+		            SET Balance = Balance - @OperationValue
+		            WHERE Number = @DestinyAccount;
+
+		            INSERT INTO Operation (dbo.Operation.Type, AccountNumber, Value, Date)
+		            VALUES
+		            (@OperationType, @AccountId, @OperationValue * -1, GETDATE());
+		
+		            Set @NewOperationId = SCOPE_IDENTITY();
+		            INSERT INTO OperationAccount (AccountId,OperationId)
+		            VALUES
+		            (@DestinyAccount,@NewOperationId);
+	            END
+            END
+
+            ");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql("DROP TRIGGER IF EXISTS UpdateBalance");
+            migrationBuilder.Sql(
+                "DROP TRIGGER IF EXISTS UpdateBalance");
             migrationBuilder.DropTable(
                 name: "DisabledAccount");
+
+            migrationBuilder.DropTable(
+                name: "Loan");
 
             migrationBuilder.DropTable(
                 name: "OperationAccount");

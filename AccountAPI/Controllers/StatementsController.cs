@@ -24,33 +24,31 @@ public class StatementsController : ControllerBase
         _statementService = statementService;
     }
 
-    [HttpGet("All/{number}")]
+    [HttpGet("{number}")]
     public async Task<ActionResult<IEnumerable<OperationDTO>>> GetByAccoutNumber(string number)
     {
-        var operations = new List<OperationDTO>();
+        List<OperationDTO> operations = new();
         if (_context.Operation == null)
         {
             return NotFound();
         }
 
-        var result = await _context.Operation
-            .Include(a => a.Account)
-            .Where(n => n.Account.Number == number)
-            .ToListAsync();
-        foreach (var operation in result)
+        var result = await _context.OperationAccount.Include(oa => oa.Operation).ThenInclude(a => a.Account)
+            .Where(oa => oa.AccountId == number).ToListAsync();
+        foreach (var operationAccount in result)
         {
-            if (operation.Account == null)
-            {
-                continue;
-            }
-
             var dto = new OperationDTO()
             {
-                Id = operation.Id,
-                Type = operation.Type,
-                AccountNumber = operation.Account.Number,
-                Value = operation.Value
+                Id = operationAccount.Operation.Id,
+                Type = operationAccount.Operation.Type,
+                Value = operationAccount.Operation.Value,
+                Date = operationAccount.Operation.Date
             };
+            if (operationAccount.Operation.Account is not null)
+            {
+                dto.TargetAccountNumber = operationAccount.Operation.Account.Number;
+            }
+
             operations.Add(dto);
         }
 

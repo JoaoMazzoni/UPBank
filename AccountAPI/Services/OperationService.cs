@@ -16,13 +16,14 @@ public class OperationService
             {
                 Id = 0,
                 Date = DateTime.Now,
-                Account = new()
+                Account = new Account
                 {
-                    Number = operationDTO.AccountNumber
+                    Number = operationDTO.TargetAccountNumber
                 },
                 Type = operationDTO.Type,
                 Value = operationDTO.Value
-            }; return operation;
+            };
+            return operation;
         }
         else
         {
@@ -44,17 +45,21 @@ public class OperationService
         {
             throw new ArgumentException("Impossivel fazer operação com valores menores ou iguais a 0");
         }
+
         if (Account.Restriction)
         {
-            throw new ArgumentException("A conta possui restrição e não é possivel realizar operações, entre em contato com o gerente");
+            throw new ArgumentException(
+                "A conta possui restrição e não é possivel realizar operações, entre em contato com o gerente");
         }
+
         if ((int)operationDTO.Type == 3 || (int)operationDTO.Type == 0 || (int)operationDTO.Type == 4)
         {
-            if(operationDTO.Value > Account.Balance)
+            if (operationDTO.Value > Account.Balance)
             {
                 throw new InvalidOperationException("Não possui saldo suficiente para processar a transação");
             }
         }
+
         return true;
     }
 }

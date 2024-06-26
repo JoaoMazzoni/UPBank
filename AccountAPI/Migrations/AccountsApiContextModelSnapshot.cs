@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,10 +10,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccountAPI.Migrations
 {
     [DbContext(typeof(AccountsApiContext))]
-    [Migration("20240625184709_Initial")]
-    partial class Initial
+    partial class AccountsApiContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -144,6 +142,27 @@ namespace AccountAPI.Migrations
                     b.ToTable("DisabledAccount", (string)null);
                 });
 
+            modelBuilder.Entity("Models.Loan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerDocument")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Loan");
+                });
+
             modelBuilder.Entity("Models.Operation", b =>
                 {
                     b.Property<int>("Id")
@@ -157,9 +176,6 @@ namespace AccountAPI.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("DestinyAccountNumber")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
