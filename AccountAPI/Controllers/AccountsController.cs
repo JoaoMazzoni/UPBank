@@ -181,56 +181,7 @@ public class AccountsController : ControllerBase
 
         return Ok("Conta ativada com sucesso.");
     }
-
-    // POST: api/Accounts/Recover
-    [HttpPost("Recover")]
-    public async Task<ActionResult<AccountDTO>> RecoverAccount(RecoverAccountDTO recoverAccountRequest)
-    {
-        recoverAccountRequest.CustomerDocument = CPFValidator.FormatCPF(recoverAccountRequest.CustomerDocument);
-        if (_context.Account == null)
-        {
-            return Problem("Entity set 'AccountsApiContext.Account'  is null.");
-        }
-
-        var isManagerRequest = await _accountService.ValidateManagerRequest(recoverAccountRequest.EmployeeId);
-        if (!isManagerRequest)
-        {
-            return Unauthorized("Nível insuficiente de acesso para a operação.");
-        }
-
-        var disabledAccount = await _context.DisabledAccount.FindAsync(recoverAccountRequest.AccountNumber);
-        if (disabledAccount == null)
-        {
-            return NotFound();
-        }
-
-        if (disabledAccount.MainCustomerId != recoverAccountRequest.CustomerDocument)
-        {
-            return BadRequest("O documento do cliente não corresponde ao da conta solicitada.");
-        }
-
-        var enabledAccount = _accountService.EnableAccountFeatures(disabledAccount);
-        await _context.Account.AddAsync(enabledAccount);
-        _context.DisabledAccount.Remove(disabledAccount);
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateException)
-        {
-            if (AccountExists(enabledAccount.Number))
-            {
-                return Conflict();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return CreatedAtAction("GetAccount", new { id = enabledAccount.Number }, enabledAccount);
-    }
+    
 
     // DELETE: api/Accounts/
     [HttpDelete]
