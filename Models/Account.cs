@@ -34,7 +34,7 @@ public class Account
     {
         Number = dto.Number;
         AgencyNumber = dto.AgencyNumber;
-        SavingsAccountNumber = dto.SavingsAccountNumber;
+        SavingsAccountNumber = dto.Number+"-00";
         MainCustomerId = CPFValidator.FormatCPF(dto.MainCustomerId);
         SecondaryCustomerId =
             dto.SecondaryCustomerId is not null ? CPFValidator.FormatCPF(dto.SecondaryCustomerId) : null;

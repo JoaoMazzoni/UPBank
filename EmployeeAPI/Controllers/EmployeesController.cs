@@ -169,7 +169,7 @@ namespace EmployeeAPI.Controllers
                 var deletedEmployee = await _context.DeletedEmployee.FindAsync(employeeDTO.Document);
 
                 if (deletedEmployee != null)
-                    return BadRequest("Este funcionpario possui um registro deletado");
+                    return BadRequest("Este funcionario possui um registro deletado");
 
                 var employee = BuildEmployee(employeeDTO).Result;
 
@@ -246,6 +246,7 @@ namespace EmployeeAPI.Controllers
         {
             try
             {
+                manager = CPFValidator.FormatCPF(manager);
                 var employee = await _context.Employee.FindAsync(manager);
 
                 if (employee == null)
@@ -276,6 +277,7 @@ namespace EmployeeAPI.Controllers
         {
             try
             {
+                manager = CPFValidator.FormatCPF(manager);
                 var employee = await _context.Employee.FindAsync(manager);
 
                 if (employee == null)
