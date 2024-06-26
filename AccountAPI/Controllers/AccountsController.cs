@@ -1,3 +1,4 @@
+using System.Security.Principal;
 using AccountAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,7 @@ public class AccountsController : ControllerBase
         _context = context;
         _accountService = accountService;
     }
-    
+
     // GET: api/Accounts
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Account>>> GetAccount()
@@ -61,7 +62,7 @@ public class AccountsController : ControllerBase
             return BadRequest();
         }
 
-        var account = _accountService.PopulateAccountData(accountDto);
+        var account = new Account(accountDto);
         _context.Entry(account).State = EntityState.Modified;
 
         try
@@ -86,23 +87,29 @@ public class AccountsController : ControllerBase
     // POST: api/Accounts
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<AccountDTO>> PostAccount(AccountDTO accountDto)
+    public async Task<ActionResult<AccountDTO>> PostAccount(AccountInsertDTO accountDto)
     {
         if (_context.Account == null)
         {
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
         }
-        var account = await _accountService.PopulateAccountData(accountDto);
+
+        var account = new Account(accountDto);
         var customer = await _accountService.GetCustomerData(account.MainCustomerId);
         if (customer == null)
         {
             return BadRequest("Customer not found.");
         }
-        account.CreditCard = _accountService.GenerateCreditCard(await _accountService.SetProfile(account.MainCustomerId), customer);
+
+        account.Profile = _accountService.GetProfileBySalary(customer.Salary);
+        account.SpecialLimit = _accountService.GetSpecialLimitBySalary(customer.Salary);
+        account.CreditCard =
+            _accountService.GenerateCreditCard(account.Profile, customer.Name);
         if (account.CreditCard == null)
         {
             return BadRequest("Invalid information retrieved from '/api/Customer'");
         }
+
         _context.Account.Add(account);
         try
         {
@@ -119,9 +126,11 @@ public class AccountsController : ControllerBase
                 throw;
             }
         }
-        return CreatedAtAction("GetAccount", new { id = accountDto.Number }, accountDto);
+
+        return CreatedAtAction("GetAccount", new { id = account.Number }, account);
     }
-    // POST: api/Accounts/Recover
+
+    // POST: api/Accounts/Activate
     [HttpPost("Activate")]
     public async Task<ActionResult<AccountDTO>> ActivateAccount(ActivateAccountDTO activateAccountRequest)
     {
@@ -151,6 +160,7 @@ public class AccountsController : ControllerBase
         {
             return BadRequest("Account already activated.");
         }
+
         account.Restriction = false;
         await _context.SaveChangesAsync();
 

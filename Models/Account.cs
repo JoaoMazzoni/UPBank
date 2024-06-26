@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using Models.DTO;
 
 namespace Models;
 
@@ -23,4 +24,33 @@ public class Account
     public DateTime Date { get; set; }
     public double Balance { get; set; }
     public ICollection<OperationAccount> OperationAccounts { get; set; }
+
+    public Account()
+    {
+    }
+
+    public Account(AccountInsertDTO dto)
+    {
+        Number = dto.Number;
+        AgencyNumber = dto.AgencyNumber;
+        SavingsAccountNumber = dto.SavingsAccountNumber;
+        MainCustomerId = dto.MainCustomerId;
+        SecondaryCustomerId = dto.SecondaryCustomerId;
+        Date = DateTime.Now;
+        Restriction = true;
+        Balance = 0;
+    }
+
+    public Account(AccountDTO dto)
+    {
+        Number = dto.Number;
+        AgencyNumber = dto.AgencyNumber;
+        SavingsAccountNumber = dto.SavingsAccountNumber;
+        MainCustomerId = dto.MainCustomerId;
+        SecondaryCustomerId = dto.SecondaryCustomerId;
+        Restriction = dto.Restriction;
+        SpecialLimit = dto.SpecialLimit;
+        Date = dto.Date;
+        Balance = dto.Balance;
+    }
 }

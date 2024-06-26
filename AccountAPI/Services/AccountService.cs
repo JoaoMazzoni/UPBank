@@ -76,20 +76,26 @@ public class AccountService
         };
     }
 
-    public async Task<bool> ValidateManagerRequest(string managerId)
+    public async Task<bool> ValidateManagerRequest(string managerIdStr)
     {
-        Employee? employee;
         try
         {
-            var employeeResponse = await _http.GetAsync($"{_employeeBaseUri}/{managerId}");
+            var id = int.Parse(managerIdStr);
+            var employeeResponse = await _http.GetAsync($"{_employeeBaseUri}/Get/Managers/");
             if (employeeResponse.StatusCode != HttpStatusCode.OK)
             {
                 return false;
             }
 
-            employee = JsonConvert.DeserializeObject<Employee>(await employeeResponse.Content.ReadAsStringAsync());
+            var employees =
+                JsonConvert.DeserializeObject<List<Employee>>(await employeeResponse.Content.ReadAsStringAsync());
+            if (employees == null)
+            {
+                return false;
+            }
 
-            if (employee is not { Manager: true })
+            var foundEmployee = employees.Find(e => e.Register == id);
+            if (foundEmployee == null || !foundEmployee.Manager)
             {
                 return false;
             }
@@ -103,28 +109,26 @@ public class AccountService
         return true;
     }
 
-    public async Task<AccountProfile> SetProfile(string clientCpf)
+    public AccountProfile GetProfileBySalary(double salary)
     {
-        Customer client = new();
-        AccountProfile profile;
-        try
-        {
-            var clientResponse = await _http.GetAsync($"{_customerBaseUri}/{clientCpf}");
-            client = JsonConvert.DeserializeObject<Customer>(clientResponse.Content.ToJson());
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-
-        profile = client.Salary switch
+        var profile = salary switch
         {
             <= 2000 => AccountProfile.Academic,
-            > 2000 and <= 5000 => AccountProfile.Normal,
+            <= 5000 => AccountProfile.Normal,
             > 5000 => AccountProfile.Premium
         };
         return profile;
+    }
+
+    public double GetSpecialLimitBySalary(double salary)
+    {
+        double specialLimit = salary switch
+        {
+            <= 2000 => 500,
+            <= 5000 => 2000,
+            > 5000 => 4000
+        };
+        return specialLimit;
     }
 
     public async Task<Customer?> GetCustomerData(string customerCpf)
@@ -149,49 +153,36 @@ public class AccountService
         return customer;
     }
 
-    public CreditCard? GenerateCreditCard(AccountProfile customerProfile, Customer customer)
+    public CreditCard? GenerateCreditCard(AccountProfile customerProfile, string ownerName)
     {
-        long cardNumber;
-        double cardLimit;
-        DateTime expirationDate;
-        CreditCardFlags cardFlag;
+        var creditCard = new CreditCard();
+        creditCard.Owner = ownerName;
+        creditCard.SecurityCode = $"{new Random().Next(1, 999)}".PadLeft(3, '0');
 
-        var ownerName = customer.Name;
-        var cardSecurityCode = $"{new Random().Next(1, 999)}".PadLeft(3, '0');
         switch (customerProfile)
         {
             case AccountProfile.Academic:
-                cardNumber = new Random().NextInt64(3000000000000000, 9999999999999999);
-                cardLimit = 800;
-                expirationDate = new DateTime(new DateOnly().Year + 5, new DateOnly().Month, 1);
-                cardFlag = CreditCardFlags.Elo;
+                creditCard.Number = new Random().NextInt64(3000000000000000, 9999999999999999);
+                creditCard.Limit = 800;
+                creditCard.Date = new DateTime(new DateOnly().Year + 5, new DateOnly().Month, 1);
+                creditCard.Flag = CreditCardFlags.Elo.ToString();
                 break;
             case AccountProfile.Normal:
-                cardNumber = new Random().NextInt64(4000000000000000, 9999999999999999);
-                cardLimit = 8000;
-                expirationDate = new DateTime(new DateOnly().Year + 8, new DateOnly().Month, 1);
-                cardFlag = CreditCardFlags.MasterCard;
+                creditCard.Number = new Random().NextInt64(4000000000000000, 9999999999999999);
+                creditCard.Limit = 8000;
+                creditCard.Date = new DateTime(new DateOnly().Year + 8, new DateOnly().Month, 1);
+                creditCard.Flag = CreditCardFlags.MasterCard.ToString();
                 break;
             case AccountProfile.Premium:
-                cardNumber = new Random().NextInt64(5000000000000000, 9999999999999999);
-                cardLimit = 20000;
-                expirationDate = new DateTime(new DateOnly().Year + 12, new DateOnly().Month, 1);
-                cardFlag = CreditCardFlags.Visa;
+                creditCard.Number = new Random().NextInt64(5000000000000000, 9999999999999999);
+                creditCard.Limit = 20000;
+                creditCard.Date = new DateTime(new DateOnly().Year + 12, new DateOnly().Month, 1);
+                creditCard.Flag = CreditCardFlags.Visa.ToString();
                 break;
             default:
                 return null;
         }
 
-        var creditCard = new CreditCard()
-        {
-            Number = cardNumber,
-            Flag = cardFlag.ToString(),
-            Date = expirationDate,
-            Owner = ownerName,
-            SecurityCode = cardSecurityCode,
-            Limit = cardLimit,
-            Active = false
-        };
         return creditCard;
     }
 }
