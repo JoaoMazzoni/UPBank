@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using Models.DTO;
+using Models.Utils;
 
 namespace Models;
 
@@ -23,4 +25,50 @@ public class Account
     public DateTime Date { get; set; }
     public double Balance { get; set; }
     public ICollection<OperationAccount> OperationAccounts { get; set; }
+
+    public Account()
+    {
+    }
+
+    public Account(AccountInsertDTO dto)
+    {
+        Number = dto.Number;
+        AgencyNumber = dto.AgencyNumber;
+        SavingsAccountNumber = dto.SavingsAccountNumber;
+        MainCustomerId = CPFValidator.FormatCPF(dto.MainCustomerId);
+        SecondaryCustomerId =
+            dto.SecondaryCustomerId is not null ? CPFValidator.FormatCPF(dto.SecondaryCustomerId) : null;
+        Date = DateTime.Now;
+        Restriction = true;
+        Balance = 0;
+    }
+
+    public Account(AccountDTO dto)
+    {
+        Number = dto.Number;
+        AgencyNumber = dto.AgencyNumber;
+        SavingsAccountNumber = dto.SavingsAccountNumber;
+        MainCustomerId = CPFValidator.FormatCPF(dto.MainCustomerId);
+        SecondaryCustomerId =
+            dto.SecondaryCustomerId is not null ? CPFValidator.FormatCPF(dto.SecondaryCustomerId) : null;
+        Restriction = dto.Restriction;
+        SpecialLimit = dto.SpecialLimit;
+        Date = dto.Date;
+        Balance = dto.Balance;
+    }
+
+    public Account(DisabledAccount disabledAccount)
+    {
+        Number = disabledAccount.Number;
+        AgencyNumber = disabledAccount.AgencyNumber;
+        SavingsAccountNumber = disabledAccount.SavingsAccountNumber;
+        MainCustomerId = disabledAccount.MainCustomerId;
+        SecondaryCustomerId = disabledAccount.SecondaryCustomerId;
+        CreditCard = disabledAccount.CreditCard;
+        Restriction = disabledAccount.Restriction;
+        SpecialLimit = disabledAccount.SpecialLimit;
+        Date = disabledAccount.Date;
+        Balance = disabledAccount.Balance;
+        Profile = disabledAccount.Profile;
+    }
 }
