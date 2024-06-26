@@ -16,6 +16,7 @@ namespace AgencyAPI.Test
         private readonly Mock<IAddressService> _mockAddressService;
         private readonly Mock<IEmployeeService> _mockEmployeeService;
         private readonly Mock<IAccountService> _mockAccountService;
+        private readonly Mock<IOperationService> _mockOperationService;
         private readonly AgenciesController _controller;
 
         static Employee employee = new Employee
@@ -121,7 +122,8 @@ namespace AgencyAPI.Test
             _mockAddressService = new Mock<IAddressService>();
             _mockEmployeeService = new Mock<IEmployeeService>();
             _mockAccountService = new Mock<IAccountService>();
-            _controller = new AgenciesController(_context, _mockAddressService.Object, _mockEmployeeService.Object, _mockAccountService.Object);
+            _mockOperationService = new Mock<IOperationService>();
+            _controller = new AgenciesController(_context, _mockAddressService.Object, _mockEmployeeService.Object, _mockAccountService.Object, _mockOperationService.Object);
         }
 
         [Fact]
