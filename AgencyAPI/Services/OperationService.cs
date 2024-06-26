@@ -7,7 +7,7 @@ namespace AgencyAPI.Services
     {
         private static readonly HttpClient _client = new HttpClient();
 
-        public async Task<List<Operation>> GetOperationsByType(string account)
+        public async Task<List<Operation>> GetOperationsByTypeLoan(string account)
         {
             var response = await _client.GetAsync("https://localhost:7285/api/Operations/" + account + "/3");
 

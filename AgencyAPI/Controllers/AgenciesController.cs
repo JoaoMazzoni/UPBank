@@ -407,14 +407,12 @@ namespace AgencyAPI.Controllers
             }
         }
 
-
-
         //Get: api/Agencies/ActiveLoan
         [HttpGet("CustomerWithActiveLoan")]
 
-        public async Task<ActionResult<IEnumerable<Operation>>> GetActiveLoan()
+        public async Task<ActionResult<IEnumerable<Operation>>> GetActiveLoan(string account)
         {
-            var loans = await _operationService.GetActiveLoan();
+            var loans = await _operationService.GetOperationsByTypeLoan(account);
             if (loans == null)
             {
                 return NotFound("Não há contas com emprestimo");
