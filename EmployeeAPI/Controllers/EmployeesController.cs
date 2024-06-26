@@ -88,7 +88,7 @@ namespace EmployeeAPI.Controllers
                 var employees = await _context.Employee.Where(e => e.Manager == true).ToListAsync();
 
                 if (employees == null)
-                    return NotFound("there are no managers");
+                    return NotFound("Não existem gerentes");
 
                 foreach (var employee in employees)
                 {
@@ -117,13 +117,13 @@ namespace EmployeeAPI.Controllers
 
                 if (e != null && e.Register != employee.Register)
                 {
-                    return BadRequest("It is not possible to change the registration number");
+                    return BadRequest("Não é possível alterar o número de registro");
                 }
                 _context.Entry(employee).State = EntityState.Modified;
             }
             catch (KeyNotFoundException ex)
             {
-                return BadRequest("Unable to find an employee with the document inserted");
+                return BadRequest("Não foi possível encontrar o funcionário com o documento informado");
             }
             catch (Exception ex)
             {
@@ -155,7 +155,7 @@ namespace EmployeeAPI.Controllers
         {
             if (_context.Employee == null)
             {
-                return Problem("Entity set 'EmployeeAPIContext.Employee'  is null.");
+                return Problem("Entity set 'EmployeeAPIContext.Employee'  is null");
             }
 
 
@@ -168,7 +168,7 @@ namespace EmployeeAPI.Controllers
                 var deletedEmployee = await _context.DeletedEmployee.FindAsync(employeeDTO.Document);
 
                 if (deletedEmployee != null)
-                    return BadRequest("This employee has a deleted record");
+                    return BadRequest("Este funcionpario possui um registro deletado");
 
                 var employee = BuildEmployee(employeeDTO).Result;
 
@@ -279,7 +279,7 @@ namespace EmployeeAPI.Controllers
 
                 if (employee == null)
                 {
-                    return BadRequest("not was possible to find this employee, Document: " + manager);
+                    return BadRequest("Não foi possível encontrar este funcionário, Document: " + manager);
                 }
                 if (employee.Manager)
                 {
@@ -289,7 +289,7 @@ namespace EmployeeAPI.Controllers
                     return accountCreated;
                 }
                 else
-                    return BadRequest("This employee not is a manager");
+                    return BadRequest("O funcionário informa não é um gerente");
             }
             catch (Exception ex)
             {
