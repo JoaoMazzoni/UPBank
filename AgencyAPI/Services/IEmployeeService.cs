@@ -10,7 +10,9 @@ namespace AgencyAPI.Services
 
         Task<Employee> GetEmployee(string cpf);
 
-        Task<Employee> GetEmployeeOnAgency(string cpf);
+        Task<Employee> IfExistGetEmployeeOnAgency(string cpf);
+
+        Task<RemovedAgencyEmployee> GetEmployeeAgencyNumber(string cpf);
 
         Task<Employee> PostEmployee(Employee employee);
 
