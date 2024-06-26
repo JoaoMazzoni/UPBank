@@ -40,7 +40,6 @@ public class OperationService
 
     public bool CheckOperation(Account Account, OperationDTO operationDTO)
     {
-        bool ok = false;
         if (operationDTO.Value <= 0)
         {
             throw new ArgumentException("Impossivel fazer operação com valores menores ou iguais a 0");
@@ -53,10 +52,9 @@ public class OperationService
         {
             if(operationDTO.Value > Account.Balance)
             {
-                throw new Exception("Não possui saldo suficiente para processar a transação");
+                throw new InvalidOperationException("Não possui saldo suficiente para processar a transação");
             }
         }
-        ok = true;
-        return ok;
+        return true;
     }
 }

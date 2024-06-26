@@ -66,7 +66,7 @@ public class AccountsController : ControllerBase
             return BadRequest();
         }
 
-        var account = _accountService.PopulateAccountData(accountDto);
+        var account = await _accountService.PopulateAccountData(accountDto);
         _context.Entry(account).State = EntityState.Modified;
 
         try

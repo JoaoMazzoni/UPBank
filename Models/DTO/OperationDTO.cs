@@ -11,7 +11,7 @@ namespace Models.DTO
     {
         public int Id { get; set; }
         public Type Type { get; set; }
-        public string AccountNumber { get; set; }
+        public string ?AccountNumber { get; set; }
         //[JsonIgnore]
         public DateTime Date { get; set; }
         public double Value { get; set; }
