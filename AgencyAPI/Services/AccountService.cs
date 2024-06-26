@@ -1,13 +1,9 @@
-﻿using Humanizer;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Models;
-using Newtonsoft.Json;
-using System.Text;
-using static Models.Account;
 
 namespace AgencyAPI.Services
 {
-    public class AccountService
+    public class AccountService : IAccountService
     {
         private static readonly HttpClient _client = new HttpClient();
 
