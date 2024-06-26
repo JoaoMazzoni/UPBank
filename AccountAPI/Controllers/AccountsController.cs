@@ -106,13 +106,13 @@ public class AccountsController : ControllerBase
         var agencyStatus = await _accountService.CheckAgencyStatus(account.AgencyNumber);
         if (!agencyStatus)
         {
-            return BadRequest("Agency has restriction or doesnt exist.");
+            return BadRequest("Agência não emcontrada ou dispõe de restrições.");
         }
 
         var customer = await _accountService.GetCustomerData(account.MainCustomerId);
         if (customer == null)
         {
-            return BadRequest("Customer not found.");
+            return BadRequest("Cliente não encontrado.");
         }
 
         account.Profile = _accountService.GetProfileBySalary(customer.Salary);
@@ -121,7 +121,7 @@ public class AccountsController : ControllerBase
             _accountService.GenerateCreditCard(account.Profile, customer.Name);
         if (account.CreditCard == null)
         {
-            return BadRequest("Invalid information retrieved from '/api/Customer'");
+            return BadRequest("Informações do cliente inválidas.");
         }
 
         _context.Account.Add(account);
@@ -157,7 +157,7 @@ public class AccountsController : ControllerBase
         var isManagerRequest = await _accountService.ValidateManagerRequest(activateAccountRequest.EmployeeId);
         if (!isManagerRequest)
         {
-            return Unauthorized("Access level denied.");
+            return Unauthorized("Nível insuficiente de acesso para a operação.");
         }
 
         var account = await _context.Account.FindAsync(activateAccountRequest.AccountNumber);
@@ -168,18 +168,18 @@ public class AccountsController : ControllerBase
 
         if (account.MainCustomerId != activateAccountRequest.CustomerDocument)
         {
-            return BadRequest("Customer document doesn't match target account.");
+            return BadRequest("O documento do cliente não corresponde ao da conta solicitada.");
         }
 
         if (!account.Restriction)
         {
-            return BadRequest("Account already activated.");
+            return BadRequest("A conta já se encontra ativada.");
         }
 
         account.Restriction = false;
         await _context.SaveChangesAsync();
 
-        return Ok("Account activated successfully.");
+        return Ok("Conta ativada com sucesso.");
     }
 
     // POST: api/Accounts/Recover
@@ -195,7 +195,7 @@ public class AccountsController : ControllerBase
         var isManagerRequest = await _accountService.ValidateManagerRequest(recoverAccountRequest.EmployeeId);
         if (!isManagerRequest)
         {
-            return Unauthorized("Access level denied.");
+            return Unauthorized("Nível insuficiente de acesso para a operação.");
         }
 
         var disabledAccount = await _context.DisabledAccount.FindAsync(recoverAccountRequest.AccountNumber);
@@ -206,7 +206,7 @@ public class AccountsController : ControllerBase
 
         if (disabledAccount.MainCustomerId != recoverAccountRequest.CustomerDocument)
         {
-            return BadRequest("Customer document doesn't match target account.");
+            return BadRequest("O documento do cliente não corresponde ao da conta solicitada.");
         }
 
         var enabledAccount = _accountService.EnableAccountFeatures(disabledAccount);

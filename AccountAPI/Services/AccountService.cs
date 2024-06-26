@@ -75,7 +75,7 @@ public class AccountService
             <= 2000 => AccountProfile.Academic,
             <= 5000 => AccountProfile.Normal,
             > 5000 => AccountProfile.Premium,
-            _ => throw new ArgumentOutOfRangeException(nameof(salary), salary, "Invalid customer salary.")
+            _ => throw new ArgumentOutOfRangeException(nameof(salary), salary, "O campo 'Salary' é inválido.")
         };
         return profile;
     }
@@ -87,7 +87,7 @@ public class AccountService
             <= 2000 => 500,
             <= 5000 => 2000,
             > 5000 => 4000,
-            _ => throw new ArgumentOutOfRangeException(nameof(salary), salary, "Invalid customer salary.")
+            _ => throw new ArgumentOutOfRangeException(nameof(salary), salary, "O campo 'Salary' é inválido.")
         };
         return specialLimit;
     }
