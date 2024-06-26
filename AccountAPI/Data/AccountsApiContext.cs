@@ -48,4 +48,5 @@ public class AccountsApiContext : DbContext
     public DbSet<DisabledAccount> DisabledAccount { get; set; } = default!;
     public DbSet<Operation> Operation { get; set; } = default!;
     public DbSet<OperationAccount> OperationAccount { get; set; } = default!;
+    public DbSet<Loan> Loan { get; set; } = default!;
 }

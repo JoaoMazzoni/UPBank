@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.DTO;
+using Models.Utils;
 using NuGet.Protocol;
 
 namespace AccountAPI.Controllers;
@@ -147,6 +148,7 @@ public class AccountsController : ControllerBase
     [HttpPost("Activate")]
     public async Task<ActionResult<AccountDTO>> ActivateAccount(ActivateAccountDTO activateAccountRequest)
     {
+        activateAccountRequest.CustomerDocument = CPFValidator.FormatCPF(activateAccountRequest.CustomerDocument);
         if (_context.Account == null)
         {
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
@@ -177,13 +179,14 @@ public class AccountsController : ControllerBase
         account.Restriction = false;
         await _context.SaveChangesAsync();
 
-        return Ok();
+        return Ok("Account activated successfully.");
     }
 
     // POST: api/Accounts/Recover
     [HttpPost("Recover")]
     public async Task<ActionResult<AccountDTO>> RecoverAccount(RecoverAccountDTO recoverAccountRequest)
     {
+        recoverAccountRequest.CustomerDocument = CPFValidator.FormatCPF(recoverAccountRequest.CustomerDocument);
         if (_context.Account == null)
         {
             return Problem("Entity set 'AccountsApiContext.Account'  is null.");
