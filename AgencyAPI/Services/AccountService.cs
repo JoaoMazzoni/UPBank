@@ -26,7 +26,7 @@ namespace AgencyAPI.Services
                 if (restrictedAccounts != null)
                     return restrictedAccounts;
             }
-            else
+            
                 return null;
         }
 

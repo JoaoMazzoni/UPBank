@@ -49,4 +49,5 @@ public class AccountsApiContext : DbContext
     public DbSet<Operation> Operation { get; set; } = default!;
     public DbSet<OperationAccount> OperationAccount { get; set; } = default!;
     public DbSet<Loan> Loan { get; set; } = default!;
+    public DbSet<CreditCard> CreditCard { get; set; } = default!;   
 }

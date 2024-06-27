@@ -181,7 +181,57 @@ public class AccountsController : ControllerBase
 
         return Ok("Conta ativada com sucesso.");
     }
-    
+
+    [HttpPatch("ActivateCard/{numberAccount}")]
+    public async Task<ActionResult<Account>> ActivateCard(string numberAccount)
+    {
+        var account = await _context.Account.Include(e => e.CreditCard).FirstOrDefaultAsync(ac => ac.Number == numberAccount);
+        var card = account.CreditCard.Number;
+        var cardExists = await _context.CreditCard.FirstOrDefaultAsync(c => c.Number == card);
+
+        if (account == null)
+        {
+            return NotFound();
+        }
+        if(cardExists == null)
+        {
+            return NotFound();
+        }
+        else
+        {
+            cardExists.Active = true;
+            _context.Entry(cardExists).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        return account;
+    }
+
+    [HttpPatch("DisableCard/{numberAccount}")]
+    public async Task<ActionResult<Account>> DeactivateCard(string numberAccount)
+    {
+        var account = await _context.Account.Include(e => e.CreditCard).FirstOrDefaultAsync(ac => ac.Number == numberAccount);
+        var card = account.CreditCard.Number;
+        var cardExists = await _context.CreditCard.FirstOrDefaultAsync(c => c.Number == card);
+
+        if (account == null)
+        {
+            return NotFound();
+        }
+        if (cardExists == null)
+        {
+            return NotFound();
+        }
+        else
+        {
+            cardExists.Active = false;
+            _context.Entry(cardExists).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        return account;
+    }
+
 
     // DELETE: api/Accounts/
     [HttpDelete]
